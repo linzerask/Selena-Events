@@ -36,6 +36,10 @@
                     
                     <div class="prose prose-sm md:prose-base text-gray-600 mb-10 flex-grow">
                         <div id="product-long-desc" class="space-y-4"></div>
+                        <div id="product-tags-cloud-container" class="mt-6 pt-6 border-t border-gray-100 hidden">
+                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-3">Tags & Keywords:</span>
+                            <div id="product-tags-cloud" class="flex flex-wrap gap-2"></div>
+                        </div>
                     </div>
 
                     <div class="pt-8 border-t border-gray-100 mt-auto flex flex-col">
@@ -139,20 +143,70 @@
                 }
             }
             
-            // Render tags
+            // Render Premium badge ONLY on the photo overlay
+            const isPremium = product.isPremium || product.tier === 'PREMIUM' || (Array.isArray(product.tags) && product.tags.includes('Premium'));
             const tagsContainer = document.getElementById('product-tags');
-            if (tagsContainer && product.tags && product.tags.length > 0) {
-                tagsContainer.innerHTML = product.tags.map(tag => {
-                    if (tag === 'Premium') {
-                        return '<div class="bg-gold text-white text-xs px-3 py-1 uppercase tracking-widest rounded shadow-sm">Premium</div>';
-                    } else if (tag !== 'Custom') {
-                        return `<div class="bg-gray-800 text-white text-xs px-3 py-1 uppercase tracking-widest rounded shadow-sm">${tag}</div>`;
-                    }
-                    return '';
-                }).join('');
-            } else if (tagsContainer) {
-                tagsContainer.innerHTML = '';
+            if (tagsContainer) {
+                if (isPremium) {
+                    tagsContainer.innerHTML = '<div class="bg-gold text-white text-xs px-3 py-1.5 uppercase tracking-widest rounded shadow-md font-semibold">PREMIUM</div>';
+                } else {
+                    tagsContainer.innerHTML = '';
+                }
             }
+
+            // Render SEO tags cleanly below product description as outline chips
+            const tagsCloudContainer = document.getElementById('product-tags-cloud-container');
+            const tagsCloud = document.getElementById('product-tags-cloud');
+            const cleanTags = (Array.isArray(product.tags) ? product.tags : [])
+                .filter(t => t && t !== 'Custom' && t !== 'Premium');
+            
+            if (tagsCloud && tagsCloudContainer) {
+                if (cleanTags.length > 0) {
+                    tagsCloud.innerHTML = cleanTags.map(tag => 
+                        `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200 hover:border-gold hover:text-gold transition-colors">${tag}</span>`
+                    ).join('');
+                    tagsCloudContainer.classList.remove('hidden');
+                } else {
+                    tagsCloudContainer.classList.add('hidden');
+                }
+            }
+
+            // SEO Metadata & JSON-LD Structured Data
+            const allKeywords = cleanTags.join(', ');
+            if (allKeywords) {
+                let metaKeywords = document.querySelector('meta[name="keywords"]');
+                if (!metaKeywords) {
+                    metaKeywords = document.createElement('meta');
+                    metaKeywords.setAttribute('name', 'keywords');
+                    document.head.appendChild(metaKeywords);
+                }
+                metaKeywords.setAttribute('content', allKeywords);
+            }
+
+            let schemaScript = document.getElementById('schema-product-jsonld');
+            if (!schemaScript) {
+                schemaScript = document.createElement('script');
+                schemaScript.id = 'schema-product-jsonld';
+                schemaScript.type = 'application/ld+json';
+                document.head.appendChild(schemaScript);
+            }
+            const imgSrc = product.img ? (product.img.startsWith('http') ? product.img : window.location.origin + '/' + product.img.replace(/^\.\.\//, '')) : '';
+            const schemaData = {
+                "@context": "https://schema.org/",
+                "@type": "Product",
+                "name": product.title,
+                "image": imgSrc ? [imgSrc] : [],
+                "description": product.shortDesc || product.title,
+                "keywords": allKeywords || undefined,
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "EUR",
+                    "price": typeof product.price === 'number' ? product.price : (parseFloat(product.price) || 0),
+                    "availability": "https://schema.org/InStock",
+                    "url": window.location.href
+                }
+            };
+            schemaScript.textContent = JSON.stringify(schemaData);
 
             
             // Content

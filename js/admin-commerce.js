@@ -77,9 +77,340 @@ document.getElementById('customer-mail-form')?.addEventListener('submit', e => s
 
 document.getElementById('import-catalog-btn')?.addEventListener('click',async e=>{if(!confirm('Produsele existente vor fi importate o singură dată și vor deveni editabile. Continuăm?'))return;e.currentTarget.disabled=true;try{const catalog=await fetch('functions/catalog.json').then(r=>r.json());for(const p of catalog){const id=`catalog_${p.source}_${p.id}`;await setDoc(doc(db,'custom_products',id),{category:p.category||'Katalog',title:p.title,subtitle:p.shortDesc||'',price:Number(p.price||0),priceMode:'fixed',decorationService:(p.tags||[]).includes('Dekoration'),features:[],longDesc:p.longDesc||'',target:p.source==='verleih'?'verleih':'shop',visible:true,isPremium:(p.tags||[]).includes('Premium'),tags:p.tags||[],img:p.img,images:p.images||[p.img],legacySource:p.source,legacyId:String(p.id),trackStock:false,transportEnabled:false,transportMode:'none',createdAt:serverTimestamp()},{merge:true});}alert(`${catalog.length} produse au fost importate/actualizate.`);}catch(err){alert(err.message)}finally{e.currentTarget.disabled=false;}});
 
-document.getElementById('portfolio-event-form')?.addEventListener('submit',async e=>{e.preventDefault();const status=document.getElementById('portfolio-status');status.textContent='Bilder werden hochgeladen...';const files=[...document.getElementById('portfolio-images').files];if(!files.length)return;const id=doc(collection(db,'portfolio_events')).id;const urls=[];for(const file of files){const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');const fileRef=ref(storage,`portfolio/${id}/${Date.now()}_${safe}`);await uploadBytes(fileRef,file);urls.push(await getDownloadURL(fileRef));}await setDoc(doc(db,'portfolio_events',id),{title:document.getElementById('portfolio-title').value.trim(),eventDate:document.getElementById('portfolio-date').value,category:document.getElementById('portfolio-category').value,description:document.getElementById('portfolio-description').value.trim(),images:urls,coverImage:urls[0],visible:document.getElementById('portfolio-visible').checked,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});e.target.reset();document.getElementById('portfolio-visible').checked=true;status.textContent='Galerie gespeichert.';status.className='text-sm text-green-600';});
+// ==========================================
+// PORTFOLIO / EVENT-GALERIE MANAGER WITH COVER SELECTOR
+// ==========================================
+let portfolioExistingImages = [];
+let portfolioNewFiles = [];
+let portfolioSelectedCover = null;
 
-function loadPortfolioAdmin(){onSnapshot(query(collection(db,'portfolio_events'),orderBy('eventDate','desc')),snap=>{const list=document.getElementById('portfolio-admin-list');if(!list)return;list.innerHTML=snap.empty?'<p class="text-sm text-gray-500">Keine Galerien.</p>':snap.docs.map(x=>{const p=x.data();return `<div class="border rounded p-3 flex justify-between gap-3"><div><strong>${esc(p.eventDate)} · ${esc(p.title)}</strong><p class="text-xs text-gray-500">${(p.images||[]).length} Bilder · ${p.visible?'sichtbar':'verborgen'}</p></div><button data-id="${x.id}" class="portfolio-delete text-red-600 text-xs">Löschen</button></div>`}).join('');list.querySelectorAll('.portfolio-delete').forEach(b=>b.onclick=()=>confirm('Galerie wirklich löschen?')&&deleteDoc(doc(db,'portfolio_events',b.dataset.id)));});}
+function resetPortfolioForm() {
+  const form = document.getElementById('portfolio-event-form');
+  if (form) form.reset();
+  const idEl = document.getElementById('portfolio-id');
+  if (idEl) idEl.value = '';
+  const visEl = document.getElementById('portfolio-visible');
+  if (visEl) visEl.checked = true;
+  const formTitle = document.getElementById('portfolio-form-title');
+  if (formTitle) formTitle.textContent = 'Neue Event-Galerie';
+  const submitBtn = document.getElementById('portfolio-submit-btn');
+  if (submitBtn) submitBtn.textContent = 'Galerie speichern';
+  const cancelBtn = document.getElementById('portfolio-cancel-btn');
+  if (cancelBtn) cancelBtn.classList.add('hidden');
+  const status = document.getElementById('portfolio-status');
+  if (status) { status.textContent = ''; status.className = 'text-sm font-medium'; }
+  
+  portfolioExistingImages = [];
+  portfolioNewFiles = [];
+  portfolioSelectedCover = null;
+  renderPortfolioImagePreviews();
+}
+
+function renderPortfolioImagePreviews() {
+  const container = document.getElementById('portfolio-images-preview-grid');
+  const previewWrapper = document.getElementById('portfolio-images-preview-wrapper');
+  if (!container) return;
+
+  const totalItemsCount = portfolioExistingImages.length + portfolioNewFiles.length;
+  if (totalItemsCount === 0) {
+    if (previewWrapper) previewWrapper.classList.add('hidden');
+    container.innerHTML = '';
+    return;
+  }
+  if (previewWrapper) previewWrapper.classList.remove('hidden');
+
+  if (!portfolioSelectedCover) {
+    if (portfolioExistingImages.length > 0) {
+      portfolioSelectedCover = portfolioExistingImages[0];
+    } else if (portfolioNewFiles.length > 0) {
+      portfolioSelectedCover = 'file_0';
+    }
+  }
+
+  let html = '';
+
+  // 1. Existing images
+  portfolioExistingImages.forEach((url, idx) => {
+    const isCover = portfolioSelectedCover === url;
+    html += `
+      <div class="relative group rounded-xl overflow-hidden border-2 transition-all ${isCover ? 'border-amber-500 ring-2 ring-amber-400/50 shadow-md bg-amber-50/20' : 'border-gray-200 hover:border-gray-300 bg-white'}">
+        <div class="aspect-video w-full overflow-hidden bg-gray-100 flex items-center justify-center">
+          <img src="${esc(url)}" class="w-full h-full object-cover">
+        </div>
+        ${isCover ? '<div class="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow flex items-center gap-1">★ TITELBILD</div>' : ''}
+        <div class="p-2 flex items-center justify-between gap-1 bg-white/95 border-t border-gray-100 text-xs">
+          <button type="button" class="btn-set-cover text-[11px] font-medium transition-colors ${isCover ? 'text-amber-600 font-bold' : 'text-gray-600 hover:text-amber-600'}" data-cover-type="url" data-cover-id="${esc(url)}">
+            ${isCover ? '✓ Aktuelles Titelbild' : '★ Als Titelbild'}
+          </button>
+          <button type="button" class="btn-remove-img text-red-500 hover:text-red-700 text-xs p-1" title="Bild entfernen" data-img-type="existing" data-idx="${idx}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  // 2. Newly selected files
+  portfolioNewFiles.forEach((fileObj, idx) => {
+    const fileId = `file_${idx}`;
+    const isCover = portfolioSelectedCover === fileId;
+    const blobUrl = fileObj._blobUrl || (fileObj._blobUrl = URL.createObjectURL(fileObj));
+    html += `
+      <div class="relative group rounded-xl overflow-hidden border-2 transition-all ${isCover ? 'border-amber-500 ring-2 ring-amber-400/50 shadow-md bg-amber-50/20' : 'border-gray-200 hover:border-gray-300 bg-white'}">
+        <div class="aspect-video w-full overflow-hidden bg-gray-100 flex items-center justify-center">
+          <img src="${blobUrl}" class="w-full h-full object-cover">
+        </div>
+        ${isCover ? '<div class="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow flex items-center gap-1">★ TITELBILD</div>' : ''}
+        <div class="absolute top-2 right-2 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded font-mono">Neu</div>
+        <div class="p-2 flex items-center justify-between gap-1 bg-white/95 border-t border-gray-100 text-xs">
+          <button type="button" class="btn-set-cover text-[11px] font-medium transition-colors ${isCover ? 'text-amber-600 font-bold' : 'text-gray-600 hover:text-amber-600'}" data-cover-type="file" data-cover-id="${fileId}">
+            ${isCover ? '✓ Aktuelles Titelbild' : '★ Als Titelbild'}
+          </button>
+          <button type="button" class="btn-remove-img text-red-500 hover:text-red-700 text-xs p-1" title="Bild entfernen" data-img-type="new" data-idx="${idx}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  container.querySelectorAll('.btn-set-cover').forEach(btn => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      portfolioSelectedCover = btn.dataset.coverId;
+      renderPortfolioImagePreviews();
+    };
+  });
+
+  container.querySelectorAll('.btn-remove-img').forEach(btn => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      const type = btn.dataset.imgType;
+      const idx = parseInt(btn.dataset.idx, 10);
+      if (type === 'existing') {
+        const removedUrl = portfolioExistingImages[idx];
+        portfolioExistingImages.splice(idx, 1);
+        if (portfolioSelectedCover === removedUrl) {
+          portfolioSelectedCover = null;
+        }
+      } else if (type === 'new') {
+        const removedId = `file_${idx}`;
+        portfolioNewFiles.splice(idx, 1);
+        if (portfolioSelectedCover === removedId) {
+          portfolioSelectedCover = null;
+        }
+      }
+      renderPortfolioImagePreviews();
+    };
+  });
+}
+
+function initPortfolioManager() {
+  const imagesInput = document.getElementById('portfolio-images');
+  if (imagesInput) {
+    imagesInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length > 0) {
+        portfolioNewFiles = [...portfolioNewFiles, ...files];
+        renderPortfolioImagePreviews();
+      }
+    });
+  }
+
+  const cancelBtn = document.getElementById('portfolio-cancel-btn');
+  if (cancelBtn) {
+    cancelBtn.onclick = (e) => {
+      e.preventDefault();
+      resetPortfolioForm();
+    };
+  }
+
+  const form = document.getElementById('portfolio-event-form');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('portfolio-status');
+      const submitBtn = document.getElementById('portfolio-submit-btn');
+
+      const totalImages = portfolioExistingImages.length + portfolioNewFiles.length;
+      if (totalImages === 0) {
+        if (status) {
+          status.textContent = 'Bitte lade mindestens ein Bild für die Galerie hoch.';
+          status.className = 'text-sm text-red-600 font-medium';
+        }
+        return;
+      }
+
+      try {
+        if (submitBtn) submitBtn.disabled = true;
+        if (status) {
+          status.textContent = 'Bilder werden verarbeitet und hochgeladen...';
+          status.className = 'text-sm text-blue-600 font-medium';
+        }
+
+        let id = document.getElementById('portfolio-id')?.value.trim();
+        const isEditing = Boolean(id);
+        if (!id) {
+          id = doc(collection(db, 'portfolio_events')).id;
+        }
+
+        const newlyUploadedUrls = [];
+        let newFilesCoverUrl = null;
+
+        for (let i = 0; i < portfolioNewFiles.length; i++) {
+          const file = portfolioNewFiles[i];
+          const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const fileRef = ref(storage, `portfolio/${id}/${Date.now()}_${i}_${safe}`);
+          await uploadBytes(fileRef, file);
+          const dlUrl = await getDownloadURL(fileRef);
+          newlyUploadedUrls.push(dlUrl);
+
+          if (portfolioSelectedCover === `file_${i}`) {
+            newFilesCoverUrl = dlUrl;
+          }
+        }
+
+        const finalImages = [...portfolioExistingImages, ...newlyUploadedUrls];
+
+        let finalCoverImage = '';
+        if (portfolioSelectedCover && portfolioExistingImages.includes(portfolioSelectedCover)) {
+          finalCoverImage = portfolioSelectedCover;
+        } else if (newFilesCoverUrl) {
+          finalCoverImage = newFilesCoverUrl;
+        } else if (finalImages.length > 0) {
+          finalCoverImage = finalImages[0];
+        }
+
+        const payload = {
+          title: document.getElementById('portfolio-title').value.trim(),
+          eventDate: document.getElementById('portfolio-date').value,
+          category: document.getElementById('portfolio-category').value,
+          description: document.getElementById('portfolio-description').value.trim(),
+          images: finalImages,
+          coverImage: finalCoverImage,
+          visible: document.getElementById('portfolio-visible').checked,
+          updatedAt: serverTimestamp()
+        };
+
+        if (!isEditing) {
+          payload.createdAt = serverTimestamp();
+          payload.createdBy = auth.currentUser ? auth.currentUser.uid : 'admin';
+        }
+
+        await setDoc(doc(db, 'portfolio_events', id), payload, { merge: true });
+
+        if (status) {
+          status.textContent = isEditing ? 'Galerie erfolgreich aktualisiert!' : 'Galerie erfolgreich gespeichert!';
+          status.className = 'text-sm text-green-600 font-medium';
+        }
+
+        resetPortfolioForm();
+      } catch (err) {
+        console.error('Portfolio save error:', err);
+        if (status) {
+          status.textContent = 'Fehler beim Speichern: ' + err.message;
+          status.className = 'text-sm text-red-600 font-medium';
+        }
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  }
+}
+
+function loadPortfolioAdmin() {
+  onSnapshot(query(collection(db, 'portfolio_events'), orderBy('eventDate', 'desc')), snap => {
+    const list = document.getElementById('portfolio-admin-list');
+    if (!list) return;
+
+    if (snap.empty) {
+      list.innerHTML = '<p class="text-sm text-gray-500 py-4 text-center">Keine Event-Galerien vorhanden.</p>';
+      return;
+    }
+
+    const categoryLabels = {
+      'hochzeiten': 'Hochzeit',
+      'taufen': 'Taufe',
+      'geburtstage': 'Geburtstag',
+      'events': 'Event'
+    };
+
+    list.innerHTML = snap.docs.map(docSnap => {
+      const p = docSnap.data();
+      const eventId = docSnap.id;
+      const cover = p.coverImage || (p.images && p.images[0]) || p.image || '';
+      const cat = categoryLabels[p.category] || p.category || 'Event';
+      const imgCount = (p.images || []).length;
+
+      return `
+        <div class="bg-white border border-gray-200 rounded-xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm hover:shadow transition-shadow">
+          <div class="flex items-center gap-3.5 flex-1 min-w-0">
+            <div class="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+              ${cover ? `<img src="${esc(cover)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-xs text-gray-400">Kein Bild</div>`}
+              <span class="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[8px] text-center font-bold tracking-wider uppercase py-0.5">Titelbild</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-xs font-semibold text-gray-900">${esc(p.title)}</span>
+                <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">${esc(cat)}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-medium ${p.visible ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-600'}">${p.visible ? 'Öffentlich' : 'Entwurf'}</span>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">${esc(p.eventDate)} &bull; ${imgCount} Bilder</p>
+              ${p.description ? `<p class="text-xs text-gray-400 truncate mt-0.5">${esc(p.description)}</p>` : ''}
+            </div>
+          </div>
+          <div class="flex items-center gap-2 self-end sm:self-center">
+            <button class="portfolio-edit bg-gray-100 hover:bg-gold hover:text-white text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1" data-id="${eventId}">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+              Bearbeiten
+            </button>
+            <button class="portfolio-delete text-red-500 hover:text-red-700 hover:bg-red-50 text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors" data-id="${eventId}" title="Galerie löschen">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    list.querySelectorAll('.portfolio-edit').forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.dataset.id;
+        const docSnap = snap.docs.find(d => d.id === id);
+        if (!docSnap) return;
+        const data = docSnap.data();
+
+        document.getElementById('portfolio-id').value = id;
+        document.getElementById('portfolio-title').value = data.title || '';
+        document.getElementById('portfolio-date').value = data.eventDate || '';
+        document.getElementById('portfolio-category').value = data.category || 'hochzeiten';
+        document.getElementById('portfolio-description').value = data.description || '';
+        document.getElementById('portfolio-visible').checked = data.visible !== false;
+
+        portfolioExistingImages = Array.isArray(data.images) ? [...data.images] : (data.coverImage ? [data.coverImage] : []);
+        portfolioNewFiles = [];
+        portfolioSelectedCover = data.coverImage || (portfolioExistingImages[0] || null);
+
+        document.getElementById('portfolio-form-title').textContent = 'Event-Galerie bearbeiten';
+        document.getElementById('portfolio-submit-btn').textContent = 'Galerie aktualisieren';
+        document.getElementById('portfolio-cancel-btn').classList.remove('hidden');
+
+        renderPortfolioImagePreviews();
+
+        document.getElementById('portfolio-event-form')?.scrollIntoView({ behavior: 'smooth' });
+      };
+    });
+
+    list.querySelectorAll('.portfolio-delete').forEach(btn => {
+      btn.onclick = () => {
+        if (confirm('Möchtest du diese Event-Galerie wirklich unwiderruflich löschen?')) {
+          deleteDoc(doc(db, 'portfolio_events', btn.dataset.id));
+        }
+      };
+    });
+  });
+}
 
 document.getElementById('site-images-form')?.addEventListener('submit',async e=>{e.preventDefault();const status=document.getElementById('site-images-status');status.textContent='Wird hochgeladen...';const changes={};for(const input of e.target.querySelectorAll('input[type=file][data-slot]')){const file=input.files[0];if(!file)continue;const fileRef=ref(storage,`site-content/${input.dataset.slot}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`);await uploadBytes(fileRef,file);changes[input.dataset.slot]=await getDownloadURL(fileRef);}if(Object.keys(changes).length)await setDoc(doc(db,'settings','site_images'),{...changes,updatedAt:serverTimestamp(),updatedBy:auth.currentUser.uid},{merge:true});e.target.reset();status.textContent='Bilder gespeichert.';status.className='mt-2 text-sm text-green-600';});
 
@@ -93,6 +424,7 @@ onAuthStateChanged(auth, async user => {
     if (user && await isStaff(user.uid)) {
         loadCustomers().catch(console.error);
         loadTransportSettings().catch(console.error);
+        initPortfolioManager();
         loadPortfolioAdmin();
         loadCancellations();
         setupMediaManager().catch(console.error);
