@@ -78,7 +78,7 @@ document.getElementById('customer-mail-form')?.addEventListener('submit', e => s
 document.getElementById('import-catalog-btn')?.addEventListener('click',async e=>{if(!confirm('Produsele existente vor fi importate o singură dată și vor deveni editabile. Continuăm?'))return;e.currentTarget.disabled=true;try{const catalog=await fetch('functions/catalog.json').then(r=>r.json());for(const p of catalog){const id=`catalog_${p.source}_${p.id}`;await setDoc(doc(db,'custom_products',id),{category:p.category||'Katalog',title:p.title,subtitle:p.shortDesc||'',price:Number(p.price||0),priceMode:'fixed',decorationService:(p.tags||[]).includes('Dekoration'),features:[],longDesc:p.longDesc||'',target:p.source==='verleih'?'verleih':'shop',visible:true,isPremium:(p.tags||[]).includes('Premium'),tags:p.tags||[],img:p.img,images:p.images||[p.img],legacySource:p.source,legacyId:String(p.id),trackStock:false,transportEnabled:false,transportMode:'none',createdAt:serverTimestamp()},{merge:true});}alert(`${catalog.length} produse au fost importate/actualizate.`);}catch(err){alert(err.message)}finally{e.currentTarget.disabled=false;}});
 
 // ==========================================
-// PORTFOLIO / EVENT-GALERIE MANAGER WITH COVER SELECTOR
+// PORTFOLIO / EVENT-GALERIE MANAGER WITH LIVE COVER SELECTOR
 // ==========================================
 let portfolioExistingImages = [];
 let portfolioNewFiles = [];
@@ -119,74 +119,66 @@ function renderPortfolioImagePreviews() {
   }
   if (previewWrapper) previewWrapper.classList.remove('hidden');
 
-  if (!portfolioSelectedCover) {
+  // Ensure a valid cover is selected (default to first available image)
+  const isCoverValid = (portfolioSelectedCover && (
+    portfolioExistingImages.includes(portfolioSelectedCover) ||
+    portfolioNewFiles.some((_, i) => portfolioSelectedCover === `file_${i}`)
+  ));
+
+  if (!isCoverValid) {
     if (portfolioExistingImages.length > 0) {
       portfolioSelectedCover = portfolioExistingImages[0];
     } else if (portfolioNewFiles.length > 0) {
       portfolioSelectedCover = 'file_0';
+    } else {
+      portfolioSelectedCover = null;
     }
   }
 
   let html = '';
 
-  // 1. Existing images
+  // 1. Existing images from Firestore / Storage
   portfolioExistingImages.forEach((url, idx) => {
     const isCover = portfolioSelectedCover === url;
     html += `
-      <div class="relative group rounded-xl overflow-hidden border-2 transition-all ${isCover ? 'border-amber-500 ring-2 ring-amber-400/50 shadow-md bg-amber-50/20' : 'border-gray-200 hover:border-gray-300 bg-white'}">
-        <div class="aspect-video w-full overflow-hidden bg-gray-100 flex items-center justify-center">
-          <img src="${esc(url)}" class="w-full h-full object-cover">
-        </div>
-        ${isCover ? '<div class="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow flex items-center gap-1">★ TITELBILD</div>' : ''}
-        <div class="p-2 flex items-center justify-between gap-1 bg-white/95 border-t border-gray-100 text-xs">
-          <button type="button" class="btn-set-cover text-[11px] font-medium transition-colors ${isCover ? 'text-amber-600 font-bold' : 'text-gray-600 hover:text-amber-600'}" data-cover-type="url" data-cover-id="${esc(url)}">
-            ${isCover ? '✓ Aktuelles Titelbild' : '★ Als Titelbild'}
-          </button>
-          <button type="button" class="btn-remove-img text-red-500 hover:text-red-700 text-xs p-1" title="Bild entfernen" data-img-type="existing" data-idx="${idx}">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-          </button>
-        </div>
+      <div class="gallery-preview-item ${isCover ? 'is-cover' : ''}" data-cover-type="url" data-cover-id="${esc(url)}" title="Klicken, um als Titelbild festzulegen">
+        <img src="${esc(url)}" class="w-full h-full object-cover" alt="Galerie Foto">
+        ${isCover ? '<div class="cover-badge">★ TITELBILD</div>' : '<div class="set-cover-overlay">Als Titelbild festlegen</div>'}
+        <button type="button" class="remove-img-btn" title="Bild entfernen" data-img-type="existing" data-idx="${idx}">✕</button>
       </div>
     `;
   });
 
-  // 2. Newly selected files
+  // 2. Newly selected local files (instant client-side blob preview)
   portfolioNewFiles.forEach((fileObj, idx) => {
     const fileId = `file_${idx}`;
     const isCover = portfolioSelectedCover === fileId;
     const blobUrl = fileObj._blobUrl || (fileObj._blobUrl = URL.createObjectURL(fileObj));
     html += `
-      <div class="relative group rounded-xl overflow-hidden border-2 transition-all ${isCover ? 'border-amber-500 ring-2 ring-amber-400/50 shadow-md bg-amber-50/20' : 'border-gray-200 hover:border-gray-300 bg-white'}">
-        <div class="aspect-video w-full overflow-hidden bg-gray-100 flex items-center justify-center">
-          <img src="${blobUrl}" class="w-full h-full object-cover">
-        </div>
-        ${isCover ? '<div class="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow flex items-center gap-1">★ TITELBILD</div>' : ''}
-        <div class="absolute top-2 right-2 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded font-mono">Neu</div>
-        <div class="p-2 flex items-center justify-between gap-1 bg-white/95 border-t border-gray-100 text-xs">
-          <button type="button" class="btn-set-cover text-[11px] font-medium transition-colors ${isCover ? 'text-amber-600 font-bold' : 'text-gray-600 hover:text-amber-600'}" data-cover-type="file" data-cover-id="${fileId}">
-            ${isCover ? '✓ Aktuelles Titelbild' : '★ Als Titelbild'}
-          </button>
-          <button type="button" class="btn-remove-img text-red-500 hover:text-red-700 text-xs p-1" title="Bild entfernen" data-img-type="new" data-idx="${idx}">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-          </button>
-        </div>
+      <div class="gallery-preview-item ${isCover ? 'is-cover' : ''}" data-cover-type="file" data-cover-id="${fileId}" title="Klicken, um als Titelbild festzulegen">
+        <img src="${blobUrl}" class="w-full h-full object-cover" alt="Neues Foto">
+        ${isCover ? '<div class="cover-badge">★ TITELBILD</div>' : '<div class="set-cover-overlay">Als Titelbild festlegen</div>'}
+        <span class="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-[9px] px-1.5 py-0.5 rounded font-mono z-10 pointer-events-none">Neu</span>
+        <button type="button" class="remove-img-btn" title="Bild entfernen" data-img-type="new" data-idx="${idx}">✕</button>
       </div>
     `;
   });
 
   container.innerHTML = html;
 
-  container.querySelectorAll('.btn-set-cover').forEach(btn => {
-    btn.onclick = (e) => {
-      e.preventDefault();
-      portfolioSelectedCover = btn.dataset.coverId;
+  // Clicking anywhere on the thumbnail selects it as the Cover Image
+  container.querySelectorAll('.gallery-preview-item').forEach(item => {
+    item.onclick = (e) => {
+      if (e.target.closest('.remove-img-btn')) return;
+      portfolioSelectedCover = item.dataset.coverId;
       renderPortfolioImagePreviews();
     };
   });
 
-  container.querySelectorAll('.btn-remove-img').forEach(btn => {
+  // Clicking the remove button deletes the image
+  container.querySelectorAll('.remove-img-btn').forEach(btn => {
     btn.onclick = (e) => {
-      e.preventDefault();
+      e.stopPropagation();
       const type = btn.dataset.imgType;
       const idx = parseInt(btn.dataset.idx, 10);
       if (type === 'existing') {
@@ -214,8 +206,12 @@ function initPortfolioManager() {
       const files = Array.from(e.target.files || []);
       if (files.length > 0) {
         portfolioNewFiles = [...portfolioNewFiles, ...files];
+        if (!portfolioSelectedCover && portfolioExistingImages.length === 0) {
+          portfolioSelectedCover = 'file_0';
+        }
         renderPortfolioImagePreviews();
       }
+      imagesInput.value = '';
     });
   }
 
@@ -281,6 +277,15 @@ function initPortfolioManager() {
           finalCoverImage = newFilesCoverUrl;
         } else if (finalImages.length > 0) {
           finalCoverImage = finalImages[0];
+        }
+
+        // Reorder finalImages so the selected cover is always at index 0 (guarantees backward compatibility)
+        if (finalCoverImage && finalImages.includes(finalCoverImage)) {
+          const coverIdx = finalImages.indexOf(finalCoverImage);
+          if (coverIdx > 0) {
+            finalImages.splice(coverIdx, 1);
+            finalImages.unshift(finalCoverImage);
+          }
         }
 
         const payload = {

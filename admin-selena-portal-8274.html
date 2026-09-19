@@ -108,6 +108,87 @@
             font-weight: 500;
             padding: 8px !important;
         }
+
+        /* Gallery Live Preview & Cover Selector (Selena Luxury Theme) */
+        .gallery-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+            margin-bottom: 12px;
+        }
+        .gallery-preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: #f8fafc;
+        }
+        .gallery-preview-item.is-cover {
+            border-color: #c5a059;
+            box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.25);
+        }
+        .cover-badge {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            background: #c5a059;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+            pointer-events: none;
+        }
+        .set-cover-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 5;
+            text-align: center;
+            padding: 6px;
+            pointer-events: none;
+        }
+        .gallery-preview-item:hover .set-cover-overlay {
+            opacity: 1;
+        }
+        .remove-img-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(220, 38, 38, 0.85);
+            color: #ffffff;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 15;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .remove-img-btn:hover {
+            background: #dc2626;
+            transform: scale(1.15);
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
     
@@ -604,9 +685,9 @@
                                 <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                     Galerie-Bilder & Titelbild
                                 </label>
-                                <span class="text-[11px] text-gray-400">Klicke auf "Als Titelbild", um das Hauptfoto zu bestimmen</span>
+                                <span class="text-[11px] text-gray-500 font-medium">Klicke auf ein Bild, um es als Titelbild festzulegen</span>
                             </div>
-                            <div id="portfolio-images-preview-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-72 overflow-y-auto p-2 bg-gray-50 rounded-xl border border-gray-200">
+                            <div id="portfolio-images-preview-grid" class="gallery-preview-grid max-h-80 overflow-y-auto p-3 bg-gray-50/80 rounded-xl border border-gray-200">
                                 <!-- Populated dynamically with live preview, cover star badges, and remove buttons -->
                             </div>
                         </div>
