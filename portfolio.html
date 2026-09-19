@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio | Selena Events</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="assets/logo_dark.png">
+</head>
+<body class="bg-white antialiased overflow-x-hidden">
+
+    <div id="header-container"></div>
+
+    <main class="pt-20">
+        <!-- Header -->
+        <section class="py-16 text-center border-b border-gray-100 scroll-animate">
+            <h1 class="text-4xl md:text-5xl mb-4 font-serif">Unser Portfolio</h1>
+            <p class="text-gray-500 font-light max-w-2xl mx-auto">Ein Einblick in die magischen Momente und atemberaubenden Kulissen, die wir für unsere Kunden geschaffen haben.</p>
+        </section>
+
+        <!-- Gallery Section -->
+        <section class="section-padding max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- Filters -->
+            <div class="flex flex-wrap justify-center gap-4 mb-12 scroll-animate" id="portfolio-filters">
+                <button class="filter-btn active text-gold border-b-2 border-gold pb-1 px-2 uppercase tracking-widest text-sm font-semibold transition-colors" data-filter="all">Alle Events</button>
+                <button class="filter-btn text-gray-400 hover:text-gold border-b-2 border-transparent hover:border-gold pb-1 px-2 uppercase tracking-widest text-sm font-semibold transition-colors" data-filter="hochzeiten">Hochzeiten</button>
+                <button class="filter-btn text-gray-400 hover:text-gold border-b-2 border-transparent hover:border-gold pb-1 px-2 uppercase tracking-widest text-sm font-semibold transition-colors" data-filter="taufen">Taufen</button>
+                <button class="filter-btn text-gray-400 hover:text-gold border-b-2 border-transparent hover:border-gold pb-1 px-2 uppercase tracking-widest text-sm font-semibold transition-colors" data-filter="geburtstage">Geburtstage</button>
+                <button class="filter-btn text-gray-400 hover:text-gold border-b-2 border-transparent hover:border-gold pb-1 px-2 uppercase tracking-widest text-sm font-semibold transition-colors" data-filter="events">Events</button>
+            </div>
+
+            <!-- Masonry Grid -->
+            <div id="portfolio-events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16"><p class="col-span-full text-center text-gray-500">Event-Galerien werden geladen...</p></div>
+            <div id="portfolio-gallery-modal" class="fixed inset-0 z-[100] bg-black/90 hidden overflow-y-auto"><button id="portfolio-modal-close" class="fixed right-5 top-5 text-white text-4xl">×</button><div class="max-w-6xl mx-auto px-5 py-20"><h2 id="portfolio-modal-title" class="text-3xl text-white font-serif mb-2"></h2><p id="portfolio-modal-description" class="text-gray-300 mb-8"></p><div id="portfolio-modal-images" class="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4"></div></div></div>
+            <h2 class="text-2xl font-serif text-center mb-8">Weitere Eindrücke</h2>
+            <div class="masonry-grid" id="portfolio-grid">
+
+                <div class="masonry-item filter-item events">
+                    <a href="blog.html" class="block relative overflow-hidden cursor-pointer group shadow-sm hover:shadow-2xl transition-shadow duration-700">
+                        <img class="w-full h-auto transform group-hover:scale-110 transition-transform duration-700 ease-out" src="assets/events/event1.jpg" alt="events">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                            <span class="text-white text-sm font-sans tracking-widest uppercase border border-white/50 px-6 py-3 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 backdrop-blur-sm hover:bg-white hover:text-black hover:border-white">Mehr sehen</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="masonry-item filter-item geburtstage">
+                    <a href="blog.html" class="block relative overflow-hidden cursor-pointer group shadow-sm hover:shadow-2xl transition-shadow duration-700">
+                        <img class="w-full h-auto transform group-hover:scale-110 transition-transform duration-700 ease-out" src="assets/events/geburtstag1.jpg" alt="geburtstage">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                            <span class="text-white text-sm font-sans tracking-widest uppercase border border-white/50 px-6 py-3 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 backdrop-blur-sm hover:bg-white hover:text-black hover:border-white">Mehr sehen</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="masonry-item filter-item hochzeiten">
+                    <a href="blog.html" class="block relative overflow-hidden cursor-pointer group shadow-sm hover:shadow-2xl transition-shadow duration-700">
+                        <img class="w-full h-auto transform group-hover:scale-110 transition-transform duration-700 ease-out" src="assets/events/hochteit2.jpg" alt="hochzeiten">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                            <span class="text-white text-sm font-sans tracking-widest uppercase border border-white/50 px-6 py-3 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 backdrop-blur-sm hover:bg-white hover:text-black hover:border-white">Mehr sehen</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="masonry-item filter-item hochzeiten">
+                    <a href="blog.html" class="block relative overflow-hidden cursor-pointer group shadow-sm hover:shadow-2xl transition-shadow duration-700">
+                        <img class="w-full h-auto transform group-hover:scale-110 transition-transform duration-700 ease-out" src="assets/events/hochzeit1.jpg" alt="hochzeiten">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                            <span class="text-white text-sm font-sans tracking-widest uppercase border border-white/50 px-6 py-3 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 backdrop-blur-sm hover:bg-white hover:text-black hover:border-white">Mehr sehen</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="masonry-item filter-item hochzeiten">
+                    <a href="blog.html" class="block relative overflow-hidden cursor-pointer group shadow-sm hover:shadow-2xl transition-shadow duration-700">
+                        <img class="w-full h-auto transform group-hover:scale-110 transition-transform duration-700 ease-out" src="assets/events/hochzeit2.jpg" alt="hochzeiten">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                            <span class="text-white text-sm font-sans tracking-widest uppercase border border-white/50 px-6 py-3 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 backdrop-blur-sm hover:bg-white hover:text-black hover:border-white">Mehr sehen</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="masonry-item filter-item taufen">
+                    <a href="blog.html" class="block relative overflow-hidden cursor-pointer group shadow-sm hover:shadow-2xl transition-shadow duration-700">
+                        <img class="w-full h-auto transform group-hover:scale-110 transition-transform duration-700 ease-out" src="assets/events/taufe1.jpg" alt="taufen">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                            <span class="text-white text-sm font-sans tracking-widest uppercase border border-white/50 px-6 py-3 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 backdrop-blur-sm hover:bg-white hover:text-black hover:border-white">Mehr sehen</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="masonry-item filter-item taufen">
+                    <a href="blog.html" class="block relative overflow-hidden cursor-pointer group shadow-sm hover:shadow-2xl transition-shadow duration-700">
+                        <img class="w-full h-auto transform group-hover:scale-110 transition-transform duration-700 ease-out" src="assets/events/taufe2.jpg" alt="taufen">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                            <span class="text-white text-sm font-sans tracking-widest uppercase border border-white/50 px-6 py-3 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 backdrop-blur-sm hover:bg-white hover:text-black hover:border-white">Mehr sehen</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="masonry-item filter-item taufen">
+                    <a href="blog.html" class="block relative overflow-hidden cursor-pointer group shadow-sm hover:shadow-2xl transition-shadow duration-700">
+                        <img class="w-full h-auto transform group-hover:scale-110 transition-transform duration-700 ease-out" src="assets/events/taufe3.jpg" alt="taufen">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                            <span class="text-white text-sm font-sans tracking-widest uppercase border border-white/50 px-6 py-3 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 backdrop-blur-sm hover:bg-white hover:text-black hover:border-white">Mehr sehen</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="masonry-item filter-item taufen">
+                    <a href="blog.html" class="block relative overflow-hidden cursor-pointer group shadow-sm hover:shadow-2xl transition-shadow duration-700">
+                        <img class="w-full h-auto transform group-hover:scale-110 transition-transform duration-700 ease-out" src="assets/events/taufe4.jpg" alt="taufen">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                            <span class="text-white text-sm font-sans tracking-widest uppercase border border-white/50 px-6 py-3 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 backdrop-blur-sm hover:bg-white hover:text-black hover:border-white">Mehr sehen</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="masonry-item filter-item taufen">
+                    <a href="blog.html" class="block relative overflow-hidden cursor-pointer group shadow-sm hover:shadow-2xl transition-shadow duration-700">
+                        <img class="w-full h-auto transform group-hover:scale-110 transition-transform duration-700 ease-out" src="assets/events/taufe5.jpg" alt="taufen">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                            <span class="text-white text-sm font-sans tracking-widest uppercase border border-white/50 px-6 py-3 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 backdrop-blur-sm hover:bg-white hover:text-black hover:border-white">Mehr sehen</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="masonry-item filter-item taufen">
+                    <a href="blog.html" class="block relative overflow-hidden cursor-pointer group shadow-sm hover:shadow-2xl transition-shadow duration-700">
+                        <img class="w-full h-auto transform group-hover:scale-110 transition-transform duration-700 ease-out" src="assets/events/taufe6.jpg" alt="taufen">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                            <span class="text-white text-sm font-sans tracking-widest uppercase border border-white/50 px-6 py-3 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 backdrop-blur-sm hover:bg-white hover:text-black hover:border-white">Mehr sehen</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="masonry-item filter-item taufen">
+                    <a href="blog.html" class="block relative overflow-hidden cursor-pointer group shadow-sm hover:shadow-2xl transition-shadow duration-700">
+                        <img class="w-full h-auto transform group-hover:scale-110 transition-transform duration-700 ease-out" src="assets/events/taufe7.jpg" alt="taufen">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                            <span class="text-white text-sm font-sans tracking-widest uppercase border border-white/50 px-6 py-3 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 backdrop-blur-sm hover:bg-white hover:text-black hover:border-white">Mehr sehen</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="masonry-item filter-item taufen">
+                    <a href="blog.html" class="block relative overflow-hidden cursor-pointer group shadow-sm hover:shadow-2xl transition-shadow duration-700">
+                        <img class="w-full h-auto transform group-hover:scale-110 transition-transform duration-700 ease-out" src="assets/events/taufe8.jpg" alt="taufen">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                            <span class="text-white text-sm font-sans tracking-widest uppercase border border-white/50 px-6 py-3 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 backdrop-blur-sm hover:bg-white hover:text-black hover:border-white">Mehr sehen</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="masonry-item filter-item taufen">
+                    <a href="blog.html" class="block relative overflow-hidden cursor-pointer group shadow-sm hover:shadow-2xl transition-shadow duration-700">
+                        <img class="w-full h-auto transform group-hover:scale-110 transition-transform duration-700 ease-out" src="assets/events/taufe9.jpg" alt="taufen">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                            <span class="text-white text-sm font-sans tracking-widest uppercase border border-white/50 px-6 py-3 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 backdrop-blur-sm hover:bg-white hover:text-black hover:border-white">Mehr sehen</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <script src="js/main.js"></script>
+    <script src="js/animations.js"></script>
+    <script type="module" src="js/portfolio.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const items = document.querySelectorAll('.filter-item');
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Update Active State
+                    filterBtns.forEach(b => {
+                        b.classList.remove('text-gold', 'border-gold', 'active');
+                        b.classList.add('text-gray-400', 'border-transparent');
+                    });
+                    btn.classList.remove('text-gray-400', 'border-transparent');
+                    btn.classList.add('text-gold', 'border-gold', 'active');
+
+                    const filterValue = btn.getAttribute('data-filter');
+
+                    // Filter logic with Anime.js
+                    items.forEach(item => {
+                        if (filterValue === 'all' || item.classList.contains(filterValue)) {
+                            item.style.display = 'block';
+                            anime({
+                                targets: item,
+                                scale: [0.8, 1],
+                                opacity: [0, 1],
+                                duration: 600,
+                                easing: 'easeOutExpo'
+                            });
+                        } else {
+                            anime({
+                                targets: item,
+                                scale: 0.8,
+                                opacity: 0,
+                                duration: 300,
+                                easing: 'easeInExpo',
+                                complete: function() {
+                                    item.style.display = 'none';
+                                }
+                            });
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

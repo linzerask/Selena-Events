@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Populate Dummy Data</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white p-8 rounded shadow-lg text-center">
+        <h1 class="text-2xl font-bold mb-4">Dummy Rentals Generieren</h1>
+        <p class="mb-6 text-gray-600">Dies erstellt Testbuchungen für nächste Woche (Dienstag bis Sonntag) für "Audio Gästebuch Telefon". Montag bleibt frei.</p>
+        <button id="populateBtn" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">Generieren!</button>
+        <p id="status" class="mt-4 text-sm font-bold text-green-600 hidden">Erfolgreich!</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAw_TmBCgvAwFPZkJ8RQ7_jSFB62KgQVqc",
+            authDomain: "selena-events-dashboard.firebaseapp.com",
+            projectId: "selena-events-dashboard",
+            storageBucket: "selena-events-dashboard.firebasestorage.app",
+            messagingSenderId: "535842804912",
+            appId: "1:535842804912:web:7464adf97bcdf456131775"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.getElementById('populateBtn').addEventListener('click', async () => {
+            document.getElementById('populateBtn').disabled = true;
+            document.getElementById('populateBtn').textContent = "Lade...";
+
+            try {
+                // Find next week's dates
+                const today = new Date();
+                const nextMonday = new Date(today);
+                nextMonday.setDate(today.getDate() + ((1 + 7 - today.getDay()) % 7 || 7)); // Next Monday
+                
+                // We want to block Tuesday to Sunday
+                for (let i = 1; i <= 6; i++) {
+                    const blockDate = new Date(nextMonday);
+                    blockDate.setDate(nextMonday.getDate() + i);
+                    
+                    const dateStr = blockDate.toISOString().split('T')[0];
+                    const itemTitle = "Audio Gästebuch Telefon";
+                    
+                    // Create Order
+                    await addDoc(collection(db, "orders"), {
+                        customerName: "Dummy Tester",
+                        customerEmail: "test@dummy.com",
+                        rentalDate: dateStr,
+                        totalPrice: 45,
+                        items: [{ title: itemTitle, price: 45, quantity: 1 }],
+                        status: 'Neu',
+                        type: 'verleih',
+                        createdAt: serverTimestamp()
+                    });
+
+                    // Block Date
+                    const docId = itemTitle.replace(/[^a-zA-Z0-9]/g, '_') + "_" + dateStr;
+                    await setDoc(doc(db, "booked_dates", docId), {
+                        date: dateStr,
+                        itemTitle: itemTitle,
+                        customerName: "Dummy Tester"
+                    });
+                }
+                document.getElementById('populateBtn').textContent = "Fertig";
+                document.getElementById('status').classList.remove('hidden');
+            } catch (error) {
+                alert("Fehler: " + error.message);
+                document.getElementById('populateBtn').disabled = false;
+                document.getElementById('populateBtn').textContent = "Generieren!";
+            }
+        });
+    </script>
+</body>
+</html>

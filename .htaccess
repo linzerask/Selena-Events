@@ -1,0 +1,19 @@
+# Charset UTF-8 erzwingen (verhindert Darstellungsfehler bei Umlauten und rumänischen Diakritika)
+AddDefaultCharset UTF-8
+AddCharset UTF-8 .html .css .js .json .xml
+
+Options +FollowSymLinks -MultiViews
+RewriteEngine On
+RewriteBase /
+
+# Alias: /kontakt -> contact.html
+RewriteRule ^kontakt/?$ contact.html [NC,L]
+
+# 1. Externe Umleitung: .html aus der URL entfernen (z.B. /seite.html -> /seite)
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([^\ ]+)\.html
+RewriteRule ^/?(.*)\.html$ /$1 [L,R=301]
+
+# 2. Interne Verarbeitung: /seite -> /seite.html laden
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.html -f
+RewriteRule ^(.*)$ $1.html [L]

@@ -1,0 +1,16 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null; }
+    function role() { return signedIn() ? firestore.get(/databases/(default)/documents/user_roles/$(request.auth.uid)).data.role : null; }
+    function staff() { return role() in ['owner', 'dev']; }
+
+    match /customer-documents/{uid}/{allPaths=**} {
+      allow read: if staff() || (signedIn() && request.auth.uid == uid);
+      allow write: if staff() && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType == 'application/pdf';
+    }
+    match /products/{allPaths=**} { allow read: if true; allow write: if staff(); }
+    match /{allPaths=**} { allow read: if true; allow write: if staff(); }
+  }
+}

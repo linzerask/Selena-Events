@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selena Events | Exclusive Event Planning & Luxury Decoration</title>
+    <meta name="description" content="Experience unforgettable moments with Selena Events. We specialize in luxury event planning, stunning decorations, and crafting effortless and flawless experiences for weddings, birthdays, and exclusive celebrations.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Anime.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="icon" type="image/png" href="../assets/logo_dark.png">
+</head>
+<body class="bg-gray-50 antialiased overflow-x-hidden">
+
+    <!-- Header will be injected here -->
+    <div id="header-container"></div>
+
+    <!-- Main Content -->
+    <main class="pt-20">
+        <!-- Hero Section -->
+        <section id="hero-carousel" class="relative h-[80vh] flex items-center justify-center overflow-hidden">
+            
+            <!-- Slide 1 -->
+            <div class="hero-slide absolute inset-0 transition-all duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)] z-20" style="transform: translateX(0); opacity: 1;">
+                <div class="absolute inset-0 z-0">
+                    <img src="../assets/1.jpg" alt="Luxury Event" class="w-full h-full object-cover object-[center_80%] filter brightness-[0.65]">
+                </div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4 max-w-4xl mx-auto z-10">
+                    <h1 class="text-4xl md:text-6xl text-white mb-6 leading-tight drop-shadow-lg">Creating Unforgettable Moments</h1>
+                    <p class="text-lg md:text-xl text-gray-200 mb-10 font-light drop-shadow-md">Exclusive event planning and luxury decoration, crafted exclusively for your unique story.</p>
+                    <div>
+                        <a href="portfolio.html" class="btn-gold">View Our Portfolio</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Slide 2 -->
+            <div class="hero-slide absolute inset-0 transition-all duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)] pointer-events-none z-10" style="transform: translateX(20%); opacity: 0;">
+                <div class="absolute inset-0 z-0">
+                    <img src="../assets/2.jpg" alt="Children Entertainment" class="w-full h-full object-cover object-[75%_80%] md:object-[center_80%] filter brightness-[0.65]">
+                </div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4 max-w-4xl mx-auto z-10">
+                    <h1 class="text-4xl md:text-6xl text-white mb-6 leading-tight drop-shadow-lg">Radiant Children's Eyes Guaranteed</h1>
+                    <p class="text-lg md:text-xl text-gray-200 mb-10 font-light drop-shadow-md">Discover our huge rental assortment of bouncy castles, bubble tents and exciting attractions for your next party.</p>
+                    <div>
+                        <a href="verleih.html" class="btn-gold">To Rental Assortment</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Slide 3 -->
+            <div class="hero-slide absolute inset-0 transition-all duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)] pointer-events-none z-10" style="transform: translateX(20%); opacity: 0;">
+                <div class="absolute inset-0 z-0">
+                    <img src="../assets/3.jpg" alt="Magical Backdrops" class="w-full h-full object-cover object-[center_80%] filter brightness-[0.65]">
+                </div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4 max-w-4xl mx-auto z-10">
+                    <h1 class="text-4xl md:text-6xl text-white mb-6 leading-tight drop-shadow-lg">Magical Backdrops</h1>
+                    <p class="text-lg md:text-xl text-gray-200 mb-10 font-light drop-shadow-md">From dreamy floristry and elegant balloon setups to a stylish photo box - we design your event down to the detail.</p>
+                    <div>
+                        <a href="service-details/catering-und-dekoration.html" class="btn-gold">View Details</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation Dots -->
+            <div class="absolute bottom-8 left-0 right-0 flex justify-center space-x-3 z-30">
+                
+                <button class="hero-dot h-3 bg-white w-8 rounded-full transition-all duration-300 cursor-pointer focus:outline-none" aria-label="Go to slide 1"></button>
+                <button class="hero-dot h-3 bg-white/50 w-3 rounded-full transition-all duration-300 cursor-pointer focus:outline-none" aria-label="Go to slide 2"></button>
+                <button class="hero-dot h-3 bg-white/50 w-3 rounded-full transition-all duration-300 cursor-pointer focus:outline-none" aria-label="Go to slide 3"></button>
+            </div>
+        </section>
+
+        
+                <!-- Ad Section -->
+        <section class="w-full bg-white py-16 scroll-animate">
+            <div class="max-w-7xl mx-auto px-4 text-center">
+                <div class="text-center mb-10">
+                    <h2 class="text-sm font-semibold tracking-widest text-gold uppercase mb-2">Our Highlights</h2>
+                    <h3 class="text-3xl md:text-4xl">Discover our Highlights</h3>
+                </div>
+                
+                <style>
+                    #highlight-slider::-webkit-scrollbar { display: none; }
+                </style>
+                <div id="highlight-slider" class="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 items-center" style="scrollbar-width: none; -ms-overflow-style: none;">
+                    <a href="verleih-items/product?id=catalog_verleih_4" class="block overflow-hidden group relative shadow-md hover:shadow-2xl transition-shadow duration-500 bg-white rounded-xl w-full flex-none md:w-auto md:flex-auto snap-center">
+                        <img src="../assets/ad.png" alt="Magic Photo Mirror" class="w-full h-auto transform group-hover:scale-[1.03] transition-transform duration-700 ease-in-out">
+                        <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    </a>
+                    <a href="service-details/floristik.html" class="block overflow-hidden group relative shadow-md hover:shadow-2xl transition-shadow duration-500 bg-white rounded-xl w-full flex-none md:w-auto md:flex-auto snap-center">
+                        <img src="../assets/ad2.png" alt="Floristry Highlights" class="w-full h-auto transform group-hover:scale-[1.03] transition-transform duration-700 ease-in-out">
+                        <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    </a>
+                    <a href="service-details/catering-und-dekoration.html" class="block overflow-hidden group relative shadow-md hover:shadow-2xl transition-shadow duration-500 bg-white rounded-xl w-full flex-none md:w-auto md:flex-auto snap-center">
+                        <img src="../assets/ad3.png" alt="Catering and Decoration Highlights" class="w-full h-auto transform group-hover:scale-[1.03] transition-transform duration-700 ease-in-out">
+                        <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const slider = document.getElementById('highlight-slider');
+                if(!slider) return;
+                setInterval(() => {
+                    if (window.innerWidth < 768) {
+                        const slideWidth = slider.clientWidth;
+                        const maxScroll = slider.scrollWidth - slideWidth;
+                        let nextScroll = slider.scrollLeft + slideWidth;
+                        
+                        if (nextScroll > maxScroll + 10) {
+                            nextScroll = 0; // go back to start
+                        }
+                        
+                        slider.scrollTo({
+                            left: nextScroll,
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 3000);
+            });
+        </script>
+
+                <!-- Top 3 Featured Items from Shop & Verleih -->
+        <section class="py-12 md:py-14 bg-white border-b border-gray-100">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-xs font-bold tracking-widest text-gold uppercase mb-2">Shop & Rental Recommendations</h2>
+                    <h3 class="text-3xl md:text-4xl font-serif text-gray-900">Popular Products</h3>
+                    <p class="text-gray-500 max-w-2xl mx-auto mt-3 font-light text-sm">Discover a selection of our most popular event attractions and decorations.</p>
+                </div>
+                <div id="featured-homepage-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Dynamically loaded via ../js/featured-items.js -->
+                </div>
+                <div class="text-center mt-8">
+                    <div class="inline-flex flex-wrap justify-center gap-4">
+                        <a href="verleih.html" class="btn-gold text-xs px-8 py-3.5 tracking-widest font-bold">Explore Rental</a>
+                        <a href="shop.html" class="btn-outline text-xs px-8 py-3.5 tracking-widest font-bold">Explore Shop</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Services Teaser -->
+        <section class="section-padding bg-[#F9F9F9] scroll-stagger-group">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-sm font-semibold tracking-widest text-gold uppercase mb-2">What We Offer</h2>
+                    <h3 class="text-3xl md:text-4xl">Our Services</h3>
+                    <p class="text-gray-500 max-w-2xl mx-auto mt-4 font-light">Discover our comprehensive services designed to make your event unforgettable.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                    
+                    <!-- Service 1 -->
+                    <a href="service-details/catering-und-dekoration.html" class="group flex flex-col items-center justify-center p-10 bg-white border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-500 rounded-xl text-center transform hover:-translate-y-2">
+                        <div class="w-16 h-16 mb-6 text-gray-400 group-hover:text-gold transform group-hover:scale-110 transition-all duration-500">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-full h-full drop-shadow-sm">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 group-hover:text-gold transition-colors duration-500">Catering and Decoration</h4>
+                    </a>
+                    <!-- Service 2 -->
+                    <a href="service-details/floristik.html" class="group flex flex-col items-center justify-center p-10 bg-white border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-500 rounded-xl text-center transform hover:-translate-y-2">
+                        <div class="w-16 h-16 mb-6 text-gray-400 group-hover:text-gold transform group-hover:scale-110 transition-all duration-500">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-full h-full drop-shadow-sm">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 group-hover:text-gold transition-colors duration-500">Floristry</h4>
+                    </a>
+                    <!-- Service 3 -->
+                    <a href="service-details/foto-video-und-audio.html" class="group flex flex-col items-center justify-center p-10 bg-white border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-500 rounded-xl text-center transform hover:-translate-y-2">
+                        <div class="w-16 h-16 mb-6 text-gray-400 group-hover:text-gold transform group-hover:scale-110 transition-all duration-500">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-full h-full drop-shadow-sm">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 group-hover:text-gold transition-colors duration-500">Photo, Video and Audio</h4>
+                    </a>
+                    <!-- Service 4 -->
+                    <a href="service-details/einladungskarten.html" class="group flex flex-col items-center justify-center p-10 bg-white border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-500 rounded-xl text-center transform hover:-translate-y-2">
+                        <div class="w-16 h-16 mb-6 text-gray-400 group-hover:text-gold transform group-hover:scale-110 transition-all duration-500">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-full h-full drop-shadow-sm">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 group-hover:text-gold transition-colors duration-500">Invitation Cards</h4>
+                    </a>
+                    <!-- Service 5 -->
+                    <a href="service-details/unterhaltung.html" class="group flex flex-col items-center justify-center p-10 bg-white border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-500 rounded-xl text-center transform hover:-translate-y-2">
+                        <div class="w-16 h-16 mb-6 text-gray-400 group-hover:text-gold transform group-hover:scale-110 transition-all duration-500">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-full h-full drop-shadow-sm">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 group-hover:text-gold transition-colors duration-500">Entertainment</h4>
+                    </a>
+                    <!-- Service 6 -->
+                    <a href="service-details/locationauswahl.html" class="group flex flex-col items-center justify-center p-10 bg-white border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-500 rounded-xl text-center transform hover:-translate-y-2">
+                        <div class="w-16 h-16 mb-6 text-gray-400 group-hover:text-gold transform group-hover:scale-110 transition-all duration-500">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-full h-full drop-shadow-sm">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 group-hover:text-gold transition-colors duration-500">Venue Selection</h4>
+                    </a>
+
+                </div>
+                <div class="text-center mt-8 w-full">
+                    <a href="leistungen.html" class="btn-gold">View all services</a>
+                </div>
+            </div>
+        </section>
+        <!-- Brand Story / About -->
+        <section class="section-padding bg-white scroll-animate">
+            <div class="max-w-5xl mx-auto text-center">
+                <h2 class="text-sm font-semibold tracking-widest text-gold uppercase mb-4">Our Vision</h2>
+                <h3 class="text-3xl md:text-4xl mb-8">Elegance in Every Detail</h3>
+                <p class="text-gray-600 leading-relaxed max-w-3xl mx-auto text-lg font-light">
+                    At Selena Events, we believe your celebration should feel like you. From small gatherings to large weddings, our team brings your ideas to life with care, beautiful floral arrangements, and high standards. We help you create memories that last.
+                </p>
+                <img src="../assets/logo_dark.png" alt="Selena Signature" class="mx-auto h-16 mt-10 opacity-70 scale-[2.5] origin-center">
+            </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section class="py-24 bg-white text-center px-4 scroll-animate border-t border-gray-100">
+            <h2 class="text-3xl md:text-4xl mb-6">Ready to plan your event?</h2>
+            <p class="text-gray-500 max-w-2xl mx-auto mb-10 font-light">Let us turn your ideas into reality. Contact our planners today to get started.</p>
+            <a href="contact.html" class="btn-gold">Schedule a Consultation</a>
+        </section>
+    </main>
+
+    
+    <!-- Partners Marquee -->
+    <section class="py-16 bg-white overflow-hidden border-t border-gray-100 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 mb-10 text-center">
+            <h3 class="text-sm font-semibold tracking-widest uppercase text-gray-400">Our Partners</h3>
+        </div>
+        <div class="relative w-full overflow-hidden">
+            <!-- Fade gradients for edges -->
+            <div class="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+            <div class="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+            
+                                    <div class="animate-scroll flex items-center w-max">
+                <!-- Group 1 -->
+                <div class="flex items-center gap-16 pr-16 min-w-max">
+                    <img src="../assets/1.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/2.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/3.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/4.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <a href="https://anonymcreator.online" target="_blank" rel="noopener noreferrer" class="inline-block hover:scale-105 transition-transform"><img src="../assets/5.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="AnonymCreator Digitalstudio"></a>
+                    <img src="../assets/1.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/2.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/3.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/4.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <a href="https://anonymcreator.online" target="_blank" rel="noopener noreferrer" class="inline-block hover:scale-105 transition-transform"><img src="../assets/5.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="AnonymCreator Digitalstudio"></a>
+                    <img src="../assets/1.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/2.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/3.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/4.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <a href="https://anonymcreator.online" target="_blank" rel="noopener noreferrer" class="inline-block hover:scale-105 transition-transform"><img src="../assets/5.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="AnonymCreator Digitalstudio"></a>
+                    <img src="../assets/1.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/2.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/3.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/4.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <a href="https://anonymcreator.online" target="_blank" rel="noopener noreferrer" class="inline-block hover:scale-105 transition-transform"><img src="../assets/5.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="AnonymCreator Digitalstudio"></a>
+                </div>
+                <!-- Group 2 (Duplicate for infinite loop) -->
+                <div class="flex items-center gap-16 pr-16 min-w-max">
+                    <img src="../assets/1.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/2.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/3.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/4.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <a href="https://anonymcreator.online" target="_blank" rel="noopener noreferrer" class="inline-block hover:scale-105 transition-transform"><img src="../assets/5.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="AnonymCreator Digitalstudio"></a>
+                    <img src="../assets/1.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/2.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/3.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/4.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <a href="https://anonymcreator.online" target="_blank" rel="noopener noreferrer" class="inline-block hover:scale-105 transition-transform"><img src="../assets/5.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="AnonymCreator Digitalstudio"></a>
+                    <img src="../assets/1.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/2.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/3.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/4.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <a href="https://anonymcreator.online" target="_blank" rel="noopener noreferrer" class="inline-block hover:scale-105 transition-transform"><img src="../assets/5.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="AnonymCreator Digitalstudio"></a>
+                    <img src="../assets/1.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/2.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/3.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <img src="../assets/4.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="Sponsor">
+                    <a href="https://anonymcreator.online" target="_blank" rel="noopener noreferrer" class="inline-block hover:scale-105 transition-transform"><img src="../assets/5.png" class="h-20 md:h-24 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm" alt="AnonymCreator Digitalstudio"></a>
+                </div>
+            </div>
+        </section>
+
+    <!-- Footer will be injected here -->
+    <div id="footer-container"></div>
+
+    <!-- Custom Scripts -->
+    <script src="../js/main.js"></script>
+    <script src="../js/featured-items.js"></script>
+    <script src="../js/animations.js"></script>
+
+    
+
+    
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slides = document.querySelectorAll('.hero-slide');
+            const dots = document.querySelectorAll('.hero-dot');
+            if (slides.length > 1) {
+                let currentSlide = 0;
+                let slideInterval;
+
+                const goToSlide = (index, direction = 'next') => {
+                    const prevSlide = currentSlide;
+                    currentSlide = index;
+                    
+                    // Determine animation direction
+                    let exitClass = direction === 'next' ? '-translate-x-full' : 'translate-x-full';
+                    let enterClass = direction === 'next' ? 'translate-x-full' : '-translate-x-full';
+
+                    // Animate Out Current
+                    slides[prevSlide].style.transform = `translateX(${direction === 'next' ? '-20%' : '20%'})`;
+                    slides[prevSlide].style.opacity = '0';
+                    slides[prevSlide].classList.remove('z-20');
+                    slides[prevSlide].classList.add('z-10', 'pointer-events-none');
+                    dots[prevSlide].classList.remove('bg-white', 'w-8');
+                    dots[prevSlide].classList.add('bg-white/50', 'w-3');
+                    
+                    // Reset Next Slide position instantly before animating in
+                    slides[currentSlide].style.transition = 'none';
+                    slides[currentSlide].style.transform = `translateX(${direction === 'next' ? '20%' : '-20%'})`;
+                    slides[currentSlide].style.opacity = '0';
+                    
+                    // Force reflow
+                    void slides[currentSlide].offsetWidth;
+                    
+                    // Animate In Next
+                    slides[currentSlide].style.transition = 'all 1.2s cubic-bezier(0.25, 1, 0.5, 1)';
+                    slides[currentSlide].style.transform = 'translateX(0)';
+                    slides[currentSlide].style.opacity = '1';
+                    slides[currentSlide].classList.remove('z-10', 'pointer-events-none');
+                    slides[currentSlide].classList.add('z-20');
+                    dots[currentSlide].classList.remove('bg-white/50', 'w-3');
+                    dots[currentSlide].classList.add('bg-white', 'w-8');
+                };
+
+                const nextSlide = () => {
+                    goToSlide((currentSlide + 1) % slides.length, 'next');
+                };
+
+                const startTimer = () => {
+                    clearInterval(slideInterval);
+                    slideInterval = setInterval(nextSlide, 5000);
+                };
+
+                dots.forEach((dot, index) => {
+                    dot.addEventListener('click', () => {
+                        if (index !== currentSlide) {
+                            const direction = index > currentSlide ? 'next' : 'prev';
+                            goToSlide(index, direction);
+                            startTimer(); // Reset timer on manual click
+                        }
+                    });
+                });
+
+                startTimer();
+            }
+        });
+    </script>
+
+</body>
+</html>

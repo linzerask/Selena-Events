@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | Selena Events</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="icon" type="image/png" href="../assets/logo_dark.png">
+</head>
+<body class="bg-gray-50 antialiased overflow-x-hidden">
+
+    <div id="header-container"></div>
+
+    <main class="pt-20">
+        <!-- Page Header -->
+        <section class="bg-white py-16 border-b border-gray-100 scroll-animate">
+            <div class="max-w-7xl mx-auto px-4 text-center">
+                <h1 class="text-4xl md:text-5xl mb-4 font-serif">Contactează-ne</h1>
+                <p class="text-gray-500 font-light max-w-2xl mx-auto">Începe planificarea evenimentului tău. Așteptăm cu nerăbdare să ascultăm ideile tale.</p>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="section-padding max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col lg:flex-row gap-16 scroll-animate">
+                
+                <!-- Contact Info & Hours -->
+                <div class="lg:w-1/3">
+                    <h2 class="text-2xl font-serif mb-6 text-dark">Informații de Contact</h2>
+                    <p class="text-gray-500 font-light mb-8 leading-relaxed text-sm">Contactează-ne pentru a programa o consultanță inițială sau pentru a solicita mai multe informații despre serviciile și închirierile noastre.</p>
+                    
+                    <div class="space-y-6 mb-10">
+                        <div class="flex items-start">
+                            <span class="text-gold text-xl mr-4">📍</span>
+                            <div>
+                                <h3 class="text-sm font-semibold uppercase tracking-wider mb-1">Locația Biroului</h3>
+                                <p class="text-gray-500 text-sm font-light">Riesterstraße 8, Tür 2<br>4050 Traun</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-gold text-xl mr-4">✉️</span>
+                            <div>
+                                <h3 class="text-sm font-semibold uppercase tracking-wider mb-1">E-Mail</h3>
+                                <p class="text-gray-500 text-sm font-light"><a href="mailto:info@selena.events" class="hover:text-gold transition-colors">info@selena.events</a></p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-gold text-xl mr-4">📞</span>
+                            <div>
+                                <h3 class="text-sm font-semibold uppercase tracking-wider mb-1">Telefon</h3>
+                                <p class="text-gray-500 text-sm font-light"><a href="tel:+436609688601" class="hover:text-gold transition-colors">+43 660 9688 601</a></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 class="text-2xl font-serif mb-6 text-dark">Program de Funcționare</h2>
+                    <ul class="text-sm text-gray-500 font-light space-y-2">
+                        <li class="flex justify-between border-b border-gray-200 pb-2"><span>Luni - Vineri</span> <span>09:00 - 18:00</span></li>
+                        <li class="flex justify-between border-b border-gray-200 pb-2"><span>Sâmbătă</span> <span>10:00 - 14:00</span></li>
+                        <li class="flex justify-between pb-2"><span>Duminică</span> <span>Închis</span></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Form -->
+                <div class="lg:w-2/3 bg-white p-8 md:p-12 shadow-sm">
+                    <h2 class="text-2xl font-serif mb-8 text-dark">Trimite-ne un Mesaj</h2>
+                    <form id="contact-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="first-name" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">Prenume</label>
+                                <input type="text" name="first-name" id="first-name" class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-gold transition-colors bg-transparent text-sm" placeholder="Max" required>
+                            </div>
+                            <div>
+                                <label for="last-name" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">Nume</label>
+                                <input type="text" name="last-name" id="last-name" class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-gold transition-colors bg-transparent text-sm" placeholder="Mustermann" required>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">Adresă de Email</label>
+                                <input type="email" name="email" id="email" class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-gold transition-colors bg-transparent text-sm" placeholder="max@beispiel.de" required>
+                            </div>
+                            <div>
+                                <label for="phone" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">Număr de telefon</label>
+                                <input type="tel" name="phone" id="phone" class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-gold transition-colors bg-transparent text-sm" placeholder="+43 660 9688 601" required>
+                            </div>
+                        </div>
+
+                        <div class="relative" id="event-type-wrapper">
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">Tipul Evenimentului</label>
+                            <input type="hidden" name="event-type" id="event-type" required>
+                            
+                            <button type="button" id="event-type-btn" class="w-full flex justify-between items-center border-b border-gray-300 py-2 focus:outline-none focus:border-gold transition-colors bg-transparent text-sm text-gray-700 font-medium cursor-pointer text-left">
+                                <span id="event-type-display" class="text-gray-400">-- Vă rugăm să alegeți --</span>
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            
+                            <div id="event-type-menu" class="absolute z-50 w-full mt-1 bg-white border border-gray-100 rounded-lg shadow-xl opacity-0 invisible transform origin-top transition-all duration-200">
+                                <ul class="py-1 text-sm text-gray-700">
+                                    <li><button type="button" class="w-full text-left px-4 py-2 hover:bg-gray-50 hover:text-gold transition-colors" data-value="wedding">Nuntă</button></li>
+                                    <li><button type="button" class="w-full text-left px-4 py-2 hover:bg-gray-50 hover:text-gold transition-colors" data-value="corporate">Eveniment Corporate</button></li>
+                                    <li><button type="button" class="w-full text-left px-4 py-2 hover:bg-gray-50 hover:text-gold transition-colors" data-value="birthday">Zi de Naștere / Privat</button></li>
+                                    <li><button type="button" class="w-full text-left px-4 py-2 hover:bg-gray-50 hover:text-gold transition-colors" data-value="rental">Doar Închiriere</button></li>
+                                    <li><button type="button" class="w-full text-left px-4 py-2 hover:bg-gray-50 hover:text-gold transition-colors" data-value="other">Altele</button></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="message" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">Mesajul Tău</label>
+                            <textarea id="message" name="message" rows="4" class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-gold transition-colors bg-transparent text-sm" placeholder="Spune-ne despre ideile tale..." required></textarea>
+                        </div>
+
+                        
+                        <!-- Invisible Anti-Spam Honeypots (Do not fill) -->
+                        <div class="hidden" style="display:none !important; visibility:hidden !important;" aria-hidden="true">
+                            <input type="text" name="company_website_url_val" id="company_website_url_val" tabindex="-1" autocomplete="off">
+                            <input type="text" name="b_contact_fax_num" id="b_contact_fax_num" tabindex="-1" autocomplete="off">
+                        </div>
+
+                        <div class="pt-4">
+                            <button type="submit" class="btn-gold w-full md:w-auto">Trimite Cererea</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Google Maps -->
+        <section class="h-96 w-full bg-gray-200 relative scroll-animate">
+            <iframe src="https://maps.google.com/maps?q=Riesterstrasse+8,+4050+Traun,+Austria&t=&z=15&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </section>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/animations.js"></script>
+
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyAw_TmBCgvAwFPZkJ8RQ7_jSFB62KgQVqc",
+            authDomain: "selena-events-dashboard.firebaseapp.com",
+            projectId: "selena-events-dashboard",
+            storageBucket: "selena-events-dashboard.firebasestorage.app",
+            messagingSenderId: "535842804912",
+            appId: "1:535842804912:web:7464adf97bcdf456131775"
+        };
+        const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+        const db = getFirestore(app);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const formMountTime = Date.now();
+            const locSelect = document.getElementById('event-location');
+            const dateInput = document.getElementById('event-date');
+            
+            if (locSelect && dateInput) {
+                locSelect.addEventListener('change', (e) => {
+                    if(e.target.value) {
+                        dateInput.disabled = false;
+                    } else {
+                        dateInput.disabled = true;
+                        dateInput.value = '';
+                    }
+                });
+            }
+
+            function isGibberishClient(text) {
+                if (!text || typeof text !== 'string') return false;
+                const trimmed = text.trim();
+                if (trimmed.length > 15 && !trimmed.includes(' ')) {
+                    const upperCount = (trimmed.match(/[A-Z]/g) || []).length;
+                    const lowerCount = (trimmed.match(/[a-z]/g) || []).length;
+                    if (upperCount > 3 && lowerCount > 3) return true;
+                }
+                return false;
+            }
+
+            const form = document.getElementById('contact-form');
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const origBtnText = submitBtn ? submitBtn.innerText : '';
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerText = 'Se trimite...';
+                    }
+
+                    const hp1 = document.getElementById('company_website_url_val')?.value || '';
+                    const hp2 = document.getElementById('b_contact_fax_num')?.value || '';
+                    const elapsedMs = Date.now() - formMountTime;
+
+                    // Honeypot or ultra-fast bot check: silently fake success
+                    if (hp1 || hp2 || elapsedMs < 1800) {
+                        setTimeout(() => {
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerText = origBtnText;
+                            }
+                            alert('Mesajul tău a fost trimis cu succes!');
+                            form.reset();
+                            if (dateInput) dateInput.disabled = true;
+                        }, 600);
+                        return;
+                    }
+
+                    const fname = document.getElementById('first-name').value;
+                    const lname = document.getElementById('last-name').value;
+                    const email = document.getElementById('email').value;
+                    const phone = document.getElementById('phone').value;
+                    const type = document.getElementById('event-type').value;
+                    const loc = locSelect ? locSelect.value : '';
+                    const dateVal = dateInput ? dateInput.value : '';
+                    const message = document.getElementById('message').value;
+
+                    if (isGibberishClient(fname) || isGibberishClient(lname) || isGibberishClient(message) || isGibberishClient(loc)) {
+                        setTimeout(() => {
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerText = origBtnText;
+                            }
+                            alert('Mesajul tău a fost trimis cu succes!');
+                            form.reset();
+                            if (dateInput) dateInput.disabled = true;
+                        }, 600);
+                        return;
+                    }
+
+                    const payload = {
+                        firstName: fname,
+                        lastName: lname,
+                        email: email,
+                        phone: phone,
+                        eventType: type,
+                        location: loc,
+                        date: dateVal,
+                        message: message,
+                        elapsedMs: elapsedMs,
+                        company_website_url_val: hp1,
+                        b_contact_fax_num: hp2
+                    };
+
+                    try {
+                        let sent = false;
+                        try {
+                            const res = await fetch('https://us-central1-selena-events-dashboard.cloudfunctions.net/submitContactInquiry', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                            if (res.ok) {
+                                sent = true;
+                            }
+                        } catch(netErr) {
+                            console.warn("Gateway error, fallback to direct Firestore", netErr);
+                        }
+
+                        if (!sent) {
+                            await addDoc(collection(db, 'messages'), {
+                                firstName: fname,
+                                lastName: lname,
+                                email: email,
+                                phone: phone,
+                                eventType: type,
+                                location: loc,
+                                date: dateVal,
+                                message: message,
+                                status: 'Neu',
+                                submittedVia: 'direct_fallback',
+                                createdAt: serverTimestamp()
+                            });
+                        }
+
+                        alert('Mesajul tău a fost trimis cu succes!');
+                        form.reset();
+                        if (dateInput) dateInput.disabled = true;
+                    } catch(error) {
+                        console.error('Error adding document: ', error);
+                        alert('Eroare la trimitere. Vă rugăm să încercați mai târziu.');
+                    } finally {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerText = origBtnText;
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>

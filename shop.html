@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop | Selena Events</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="assets/logo_dark.png">
+</head>
+<body class="bg-gray-50 antialiased overflow-x-hidden">
+
+    <div id="header-container"></div>
+
+    <main class="pt-20">
+        <!-- Page Header -->
+        <section class="bg-white py-16 border-b border-gray-100">
+            <div class="max-w-7xl mx-auto px-4 text-center scroll-animate">
+                <h1 class="text-4xl md:text-5xl mb-4">Shop</h1>
+                <p class="text-gray-500 font-light max-w-2xl mx-auto">Buchen Sie Dekorationsdienstleistungen und ausgewählte Eventmodule. Wiederverwendbare Dekorationselemente werden nicht verkauft.</p>
+            </div>
+        </section>
+
+        <!-- Shop Content -->
+        <section class="section-padding max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col lg:flex-row gap-8">
+                
+                <!-- Sidebar Filters -->
+                <aside id="sidebar-filters" class="w-full lg:w-1/4 hidden lg:block">
+                    <div class="sticky top-24 space-y-8">
+                        
+                        <!-- Cart Widget -->
+                        <div class="bg-gray-50 p-6 rounded-xl border border-gray-100 shadow-sm">
+                            <h3 class="text-lg font-serif mb-4 border-b border-gray-200 pb-2 flex justify-between items-center">
+                                <span>Warenkorb</span>
+                                <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            </h3>
+                            <div id="cart-items" class="space-y-4 mb-4 max-h-64 overflow-y-auto pr-2">
+                                <!-- Cart Items Injected Here -->
+                                <p class="text-sm text-gray-500 italic" id="empty-cart-msg">Keine Produkte im Warenkorb.</p>
+                            </div>
+                            <div class="border-t border-gray-200 pt-4 mb-6">
+                                <div class="flex justify-between items-center text-gray-900 font-semibold">
+                                    <span>Zwischensumme:</span>
+                                    <span id="cart-total" class="text-gold font-serif text-xl">0 €</span>
+                                </div>
+                            </div>
+                            <button id="checkout-btn" class="btn-gold w-full justify-center text-center py-3 text-sm tracking-widest block opacity-50 pointer-events-none transition-opacity">ZUR KASSE</button>
+                        </div>
+                        
+                        <!-- Categories -->
+                        <div>
+                            <h3 class="text-lg font-serif mb-4 border-b border-gray-200 pb-2">Kategorien</h3>
+                            <ul class="space-y-2 text-sm text-gray-600">
+                                <li><a href="#" class="category-link text-gold font-semibold hover:text-gold transition-colors block" data-category="Alle">Alle Kategorien</a></li>
+                                <li><a href="#" class="category-link hover:text-gold transition-colors block" data-category="Spezialangebote">Spezialangebote</a></li>
+                                <li><a href="#" class="category-link hover:text-gold transition-colors block" data-category="Event-Attraktionen">Event-Attraktionen</a></li>
+                                <li><a href="#" class="category-link hover:text-gold transition-colors block" data-category="Fotoecke">Fotoecke</a></li>
+                                <li><a href="#" class="category-link hover:text-gold transition-colors block" data-category="Hüpfburg">Hüpfburg</a></li>
+                                <li><a href="#" class="category-link hover:text-gold transition-colors block" data-category="Maskottchen">Maskottchen</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- Price Filter -->
+                        <div>
+                            <h3 class="text-lg font-serif mb-4 border-b border-gray-200 pb-2">Preis filtern</h3>
+                            <div class="flex flex-col">
+                                <input type="range" id="price-range" min="0" max="20000" value="20000" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gold">
+                                <div class="flex justify-between items-center mt-4 text-sm text-gray-600">
+                                    <span>Preis: 0 € — <span id="price-display" class="font-semibold text-gray-900">20000 €</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tags -->
+                        <div>
+                            <h3 class="text-lg font-serif mb-4 border-b border-gray-200 pb-2">Tags</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <a href="#" class="tag-link px-3 py-1 bg-gray-100 text-xs text-gray-600 rounded hover:bg-gold hover:text-white transition-colors" data-tag="Event-Attraktionen">Event-Attraktionen</a>
+                                <a href="#" class="tag-link px-3 py-1 bg-gray-100 text-xs text-gray-600 rounded hover:bg-gold hover:text-white transition-colors" data-tag="Kinderparty">Kinderparty</a>
+                                <a href="#" class="tag-link px-3 py-1 bg-gray-100 text-xs text-gray-600 rounded hover:bg-gold hover:text-white transition-colors" data-tag="Hochzeit">Hochzeit</a>
+                                <a href="#" class="tag-link px-3 py-1 bg-gray-100 text-xs text-gray-600 rounded hover:bg-gold hover:text-white transition-colors" data-tag="Geburtstag">Geburtstag</a>
+                                <a href="#" class="tag-link px-3 py-1 bg-gray-100 text-xs text-gray-600 rounded hover:bg-gold hover:text-white transition-colors" data-tag="Paw Patrol">Paw Patrol</a>
+                                <a href="#" class="tag-link px-3 py-1 bg-gray-100 text-xs text-gray-600 rounded hover:bg-gold hover:text-white transition-colors" data-tag="Premium">Premium</a>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Product Area -->
+                <div class="w-full lg:w-3/4">
+                    <div class="flex justify-between items-center mb-6 text-sm text-gray-500 border-b border-gray-100 pb-4">
+                        <span id="results-count">Zeigt alle Ergebnisse</span>
+    <button id="mobile-filter-btn" class="lg:hidden flex items-center text-gray-700 hover:text-gold transition-colors font-medium ml-4">
+        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+        Filter
+    </button>
+                    </div>
+                    
+                    <!-- Dynamic Grid -->
+                    <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Products will be injected here by JS -->
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div id="pagination-container" class="mt-16 flex justify-center space-x-2">
+                        <!-- Pagination injected here -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <!-- Product Modal -->
+    <div id="product-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+        <!-- Overlay -->
+        <div id="modal-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative bg-white w-full max-w-4xl max-h-[90vh] mx-4 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row transform transition-all">
+            <!-- Close Button -->
+            <button id="modal-close" class="absolute top-4 right-4 z-10 w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors shadow-sm">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+
+            <!-- Image Column -->
+            <div class="w-full md:w-1/2 bg-gray-50 p-8 flex items-center justify-center relative">
+                <img id="modal-img" src="" alt="Product" class="w-full h-auto max-h-[50vh] md:max-h-full object-contain">
+            </div>
+
+            <!-- Details Column -->
+            <div class="w-full md:w-1/2 p-8 md:p-10 flex flex-col overflow-y-auto max-h-[50vh] md:max-h-full">
+                <h2 id="modal-title" class="text-2xl md:text-3xl font-serif text-gray-900 mb-2"></h2>
+                <div class="text-gold font-serif text-2xl font-medium mb-6" id="modal-price"></div>
+                
+                <div class="prose prose-sm text-gray-600 mb-8 flex-grow">
+                    <p id="modal-short-desc" class="font-medium text-gray-800 mb-6"></p>
+                    <div id="modal-long-desc" class="text-gray-500 space-y-4"></div>
+                </div>
+
+                <div class="pt-6 border-t border-gray-100 mt-auto flex flex-col sm:flex-row gap-3">
+                    <button id="modal-add-to-cart" class="btn-gold flex-1 justify-center text-center py-3 text-sm tracking-widest block" onclick="">IN DEN WARENKORB</button>
+                    <button id="modal-share-btn" type="button" class="border border-gray-200 hover:border-gold text-gray-700 hover:text-gold px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-xs tracking-widest font-semibold uppercase transition-all bg-white hover:bg-gray-50 shadow-sm cursor-pointer">
+                        <svg class="w-4 h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                        <span>TEILEN</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="fixed inset-0 z-[70] hidden overflow-y-auto flex items-center justify-center p-4">
+        <div id="checkout-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
+        <div class="relative bg-white w-full max-w-md mx-4 rounded-2xl shadow-2xl p-6 sm:p-8 transform transition-all max-h-[90vh] overflow-y-auto">
+            <button type="button" id="checkout-close" class="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h2 class="text-2xl font-serif text-gray-900 mb-6">Bestellung abschließen</h2>
+            
+            <div id="checkout-auth-prompt" class="mb-6 hidden">
+                <p class="text-sm text-gray-600 mb-4">Bereits ein Konto? Loggen Sie sich ein für eine schnellere Abwicklung oder fahren Sie als Gast fort.</p>
+                <div class="flex gap-3">
+                    <button type="button" id="checkout-login-btn" class="flex-1 bg-gray-900 text-white py-2 rounded text-sm hover:bg-black transition-colors">Einloggen</button>
+                    <button type="button" id="checkout-guest-btn" class="flex-1 border border-gray-300 text-gray-700 py-2 rounded text-sm hover:bg-gray-50 transition-colors">Als Gast bestellen</button>
+                </div>
+            </div>
+
+            <form id="checkout-form" class="space-y-4">
+                <div id="checkout-personal-fields">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Name</label>
+                        <input type="text" id="checkout-name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold text-base px-3 py-2 border">
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700">E-Mail</label>
+                        <input type="email" id="checkout-email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold text-base px-3 py-2 border">
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700">Adresse</label>
+                        <input type="text" id="checkout-address" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold text-base px-3 py-2 border">
+                    <div id="checkout-same-address-wrapper" class="mt-2 hidden">
+                        <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
+                            <input type="checkbox" id="checkout-same-address" class="h-4 w-4 text-gold rounded border-gray-300 focus:ring-gold">
+                            <span>Lieferadresse entspricht meiner hinterlegten Kontoadresse</span>
+                        </label>
+                    </div>
+                    </div>
+                    <div id="checkout-diff-address-container" class="mt-3 p-3 bg-amber-50/50 border border-amber-200 rounded-lg space-y-3 hidden">
+                        <div class="text-xs font-semibold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            Abweichende Lieferadresse / Veranstaltungsort
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700">Straße & Hausnummer</label>
+                            <input type="text" id="checkout-diff-address" placeholder="z.B. Eventlocation Schloss Linz, Hauptstraße 12" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold text-sm px-3 py-2 border bg-white">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700">PLZ</label>
+                                <input type="text" id="checkout-diff-postcode" placeholder="4020" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold text-sm px-3 py-2 border bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700">Ort / Stadt</label>
+                                <input type="text" id="checkout-diff-city" placeholder="Linz" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold text-sm px-3 py-2 border bg-white">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3"><div><label class="block text-sm font-medium text-gray-700">Veranstaltungsdatum</label><input type="date" id="checkout-event-date" required class="mt-1 w-full rounded-md border text-base px-3 py-2"></div><div><label class="block text-sm font-medium text-gray-700">PLZ Veranstaltungsort</label><input type="text" id="checkout-postcode" required inputmode="numeric" pattern="[0-9]{4,5}" class="mt-1 w-full rounded-md border text-base px-3 py-2"></div></div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700">Telefonnummer</label>
+                        <input type="tel" id="checkout-phone" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold text-base px-3 py-2 border">
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700">Notizen (optional)</label>
+                        <textarea id="checkout-notes" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold text-base px-3 py-2 border"></textarea>
+                    </div>
+                </div>
+                <div class="border-t border-gray-100 pt-4 mt-4">
+                    <div id="checkout-items-summary" class="text-xs text-gray-600 space-y-1 mb-3"></div>
+                    <div class="flex justify-between text-sm text-gray-600"><span>Leistungen</span><span id="checkout-subtotal">0 €</span></div>
+                    <div class="flex justify-between text-sm text-gray-600 mb-3"><span>Transport</span><span id="checkout-transport">0 €</span></div>
+                    <div class="flex justify-between items-center text-gray-900 font-semibold mb-4">
+                        <span>Summe:</span>
+                        <span id="checkout-total" class="text-gold font-serif text-xl">0 €</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-3">Dekorationsdienstleistung - kein Verkauf der abgebildeten Dekoration. Wiederverwendbare Gestelle, Bögen, Rückwände, Podeste, Kunstblumen und Zubehör bleiben Eigentum von Selena Events und werden nach der Veranstaltung abgeholt.</p>
+                    <label class="flex gap-2 items-start text-xs text-gray-700 mb-2"><input type="checkbox" id="checkout-agb" required class="mt-0.5"><span>Ich akzeptiere die <a class="underline" href="agb.html" target="_blank">AGB</a> und habe die <a class="underline" href="widerruf.html" target="_blank">Informationen zum Rücktrittsrecht</a> gelesen.</span></label>
+                    <label class="flex gap-2 items-start text-xs text-gray-700 mb-4"><input type="checkbox" id="checkout-service-confirm" required class="mt-0.5"><span>Ich bestätige, dass wiederverwendbare Dekorationselemente nicht gekauft werden und dass der angezeigte Gesamtpreis zahlungspflichtig ist.</span></label>
+                    <button type="submit" id="checkout-submit" class="btn-gold w-full justify-center text-center py-3 text-sm tracking-widest block">KOSTENPFLICHTIG BESTELLEN</button>
+                </div>
+                <p id="checkout-success" class="text-green-600 text-sm hidden mt-4 text-center">Bestellung erfolgreich gesendet!</p>
+            </form>
+        </div>
+    </div>
+
+    
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center">
+        <div id="success-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
+        <div class="relative bg-white w-full max-w-md mx-4 rounded-2xl shadow-2xl p-8 text-center transform transition-all border-t-4 border-green-500">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h3 id="success-modal-title" class="text-2xl font-serif text-gray-900 mb-3">Vielen Dank!</h3>
+            <p id="success-modal-msg" class="text-gray-500 text-base mb-8">Ihre Bestellung wurde erfolgreich aufgegeben. Bitte prüfen Sie Ihr E-Mail-Postfach für die Bestätigung.</p>
+            <button id="success-modal-close" class="btn-gold w-full justify-center text-center py-3 text-sm tracking-widest block font-medium" onclick="document.getElementById('success-modal').classList.add('hidden')">SCHLIESSEN</button>
+        </div>
+    </div>
+    <!-- Error Modal -->
+    <div id="error-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center">
+        <div id="error-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
+        <div class="relative bg-white w-full max-w-sm mx-4 rounded-2xl shadow-2xl p-6 text-center transform transition-all border-t-4 border-red-500">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h3 class="text-xl font-serif text-gray-900 mb-2">Achtung</h3>
+            <p id="error-modal-msg" class="text-gray-500 text-sm mb-6"></p>
+            <button id="error-modal-close" class="btn-gold w-full justify-center text-center py-2 text-sm tracking-widest block">VERSTANDEN</button>
+        </div>
+    </div>
+    
+    <script src="js/main.js"></script>
+    <script src="js/product-inquiry.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/shop.js"></script>
+
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAw_TmBCgvAwFPZkJ8RQ7_jSFB62KgQVqc",
+            authDomain: "selena-events-dashboard.firebaseapp.com",
+            projectId: "selena-events-dashboard",
+            storageBucket: "selena-events-dashboard.firebasestorage.app",
+            messagingSenderId: "535842804912",
+            appId: "1:535842804912:web:7464adf97bcdf456131775"
+        };
+
+        const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+        const auth = getAuth(app);
+        setPersistence(auth, browserLocalPersistence).catch(console.error);
+        const db = getFirestore(app);
+        
+        window.firebaseDb = db;
+        window.firebaseCollection = collection;
+        window.firebaseAddDoc = addDoc;
+        window.firebaseServerTimestamp = serverTimestamp;
+        window.firebaseDoc = doc;
+        window.firebaseSetDoc = setDoc;
+        window.firebaseGetDoc = getDoc;
+        window.firebaseUpdateDoc = updateDoc;
+        window.firebaseArrayUnion = arrayUnion;
+        window.firebaseArrayRemove = arrayRemove;
+        window.firebaseQuery = query;
+        window.firebaseWhere = where;
+        window.firebaseGetDocs = getDocs;
+
+        if (window.fetchCustomPackages) { window.fetchCustomPackages(); }
+        if (window.fetchCustomProducts) { window.fetchCustomProducts(); }
+
+        onAuthStateChanged(auth, async (user) => {
+            window.currentUser = user;
+            if (user) {
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists()) {
+                        window.userWishlist = userDoc.data().wishlist || [];
+                    } else {
+                        window.userWishlist = [];
+                    }
+                } catch(e) {
+                    window.userWishlist = [];
+                }
+            } else {
+                window.userWishlist = [];
+            }
+            if (window.renderProducts) window.renderProducts();
+        });
+    </script>
+
+</body>
+</html>
+

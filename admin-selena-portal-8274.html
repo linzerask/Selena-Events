@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Dashboard | Selena Events</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="assets/logo_dark.png">
+    <style>
+        /* Custom scrollbar for dashboard */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D4AF37; 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #b5952f; 
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Override global style.css which hides all asides */
+        @media (max-width: 1023px) {
+            aside#sidebar {
+                display: flex !important;
+            }
+        }
+
+        /* FullCalendar Custom Overrides for Premium Design */
+        .fc {
+            font-family: inherit;
+        }
+        .fc-theme-standard .fc-scrollgrid {
+            border: 1px solid #f3f4f6;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .fc-theme-standard td, .fc-theme-standard th {
+            border-color: #f3f4f6;
+        }
+        .fc-col-header-cell {
+            padding: 12px 0 !important;
+            background-color: #fafafa;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        .fc-toolbar-title {
+            font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+            font-weight: 700 !important;
+            font-size: 1.5rem !important;
+            color: #111827;
+        }
+        .fc .fc-button-primary {
+            background-color: #1f2937 !important;
+            border-color: #1f2937 !important;
+            box-shadow: none !important;
+            text-transform: capitalize;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .fc .fc-button-primary:not(:disabled):hover {
+            background-color: #374151 !important;
+            border-color: #374151 !important;
+        }
+        .fc .fc-button-primary:not(:disabled).fc-button-active {
+            background-color: #D4AF37 !important;
+            border-color: #D4AF37 !important;
+        }
+        .fc-day-today {
+            background-color: #fefce8 !important;
+        }
+        .fc-event {
+            border: none !important;
+            background: linear-gradient(135deg, #D4AF37 0%, #b5952f 100%) !important;
+            color: white !important;
+            border-radius: 4px !important;
+            padding: 2px 4px !important;
+            font-size: 0.75rem !important;
+            font-weight: 500 !important;
+            box-shadow: 0 2px 4px rgba(212, 175, 55, 0.3) !important;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+        .fc-event:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(212, 175, 55, 0.4) !important;
+        }
+        .fc-daygrid-day-number {
+            color: #4b5563;
+            font-weight: 500;
+            padding: 8px !important;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    
+</head>
+<body class="bg-gray-50/50 text-gray-800 font-sans h-screen flex overflow-hidden">
+
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="fixed inset-0 bg-[#1f2937] z-[100] flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full">
+            <div class="text-center mb-8">
+                <img src="assets/logo_dark.png" alt="Selena Events" class="h-12 mx-auto mb-4" style="filter: brightness(0) saturate(100%) invert(71%) sepia(50%) saturate(1415%) hue-rotate(9deg) brightness(88%) contrast(85%);">
+                <h2 class="text-2xl font-serif text-gray-900">Portal Login</h2>
+                <p class="text-gray-500 text-sm mt-2">Bitte melden Sie sich an, um fortzufahren.</p>
+            </div>
+            
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-gray-700">E-Mail Adresse</label>
+                    <input type="email" id="login-email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm px-3 py-2 border">
+                </div>
+                
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-700">Passwort</label>
+                    <input type="password" id="login-password" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm px-3 py-2 border">
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="keep-logged-in" type="checkbox" class="h-4 w-4 text-gold focus:ring-gold border-gray-300 rounded" checked>
+                        <label for="keep-logged-in" class="ml-2 block text-sm text-gray-700">Eingeloggt bleiben</label>
+                    </div>
+                </div>
+                
+                <div id="login-error" class="text-red-500 text-sm hidden"></div>
+                
+                <button type="submit" id="login-submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gold hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold transition-colors">
+                    Anmelden
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden transition-opacity"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-[#1f2937] text-white shadow-xl transform -translate-x-full md:translate-x-0 md:static md:flex flex-col transition-transform duration-300">
+        <!-- Logo -->
+        <div class="h-20 flex items-center justify-center border-b border-gray-700/50">
+            <img src="assets/logo_dark.png" alt="Selena Events" class="h-10 filter invert scale-[2.0] origin-center">
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-2">
+            
+            <a href="#" class="nav-btn active flex items-center px-4 py-3 text-sm font-medium rounded-lg bg-gold text-white shadow-sm transition-colors" data-target="dashboard" data-allowed-roles="owner,dev">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                Übersicht
+            </a>
+
+            <a href="#" class="nav-btn flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-300 hover:bg-gray-800 hover:text-gold transition-colors" data-target="verleih" data-allowed-roles="owner,dev">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                Verleih
+                <span id="sidebar-notif-verleih" class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full hidden">0</span>
+            </a>
+
+            <a href="#" class="nav-btn flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-300 hover:bg-gray-800 hover:text-gold transition-colors" data-target="shop" data-allowed-roles="owner,dev">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                Shop Bestellungen
+                <span id="sidebar-notif-shop" class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full hidden">0</span>
+            </a>
+
+            <a href="#" class="nav-btn flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-300 hover:bg-gray-800 hover:text-gold transition-colors" data-target="packages" data-allowed-roles="owner,dev">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
+                Spezialpakete
+            </a>
+
+                        <a href="#" class="nav-btn flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-300 hover:bg-gray-800 hover:text-gold transition-colors" data-target="featured-admin" data-allowed-roles="owner,dev">
+                <svg class="w-5 h-5 mr-3 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                <span>⭐ Startseite Highlights</span>
+            </a>
+
+            <a href="#" class="nav-btn flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-300 hover:bg-gray-800 hover:text-gold transition-colors" data-target="products" data-allowed-roles="owner,dev">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                Produkte
+            </a>
+
+            <a href="#" class="nav-btn flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-300 hover:bg-gray-800 hover:text-gold transition-colors" data-target="calendar" data-allowed-roles="owner,dev,volunteer">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                Kalender
+                <span id="sidebar-notif-calendar" class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full hidden">0</span>
+            </a>
+
+            <a href="#" class="nav-btn flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-300 hover:bg-gray-800 hover:text-gold transition-colors" data-target="messages" data-allowed-roles="owner,dev">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                Nachrichten
+                <span id="sidebar-notif-messages" class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full hidden">0</span>
+            </a>
+            <a href="#" class="nav-btn flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-300 hover:bg-gray-800 hover:text-gold transition-colors" data-target="portfolio-admin" data-allowed-roles="owner,dev"><span>Galerii Portfolio</span></a>
+            <a href="#" class="nav-btn flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-300 hover:bg-gray-800 hover:text-gold transition-colors" data-target="customer-mail" data-allowed-roles="owner,dev">
+                <span class="mr-3">✉</span><span>Kundenpostfach</span>
+                <span id="sidebar-notif-customer-mail" class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full hidden">0</span>
+            </a>
+
+            <a href="#" class="nav-btn flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-300 hover:bg-gray-800 hover:text-gold transition-colors" data-target="comments" data-allowed-roles="owner,dev">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg>
+                Kommentare
+                <span id="sidebar-notif-comments" class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full hidden">0</span>
+            </a>
+
+            <a href="#" class="nav-btn flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-300 hover:bg-gray-800 hover:text-gold transition-colors" data-target="chat" data-allowed-roles="owner,dev,volunteer">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                Team Chat
+                <span id="sidebar-notif-chat" class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full hidden">0</span>
+            </a>
+
+            <a href="#" class="nav-btn flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-300 hover:bg-gray-800 hover:text-gold transition-colors" data-target="members" data-allowed-roles="owner">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                Mitglieder
+            </a>
+
+            <a href="#" class="nav-btn flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-300 hover:bg-gray-800 hover:text-gold transition-colors" data-target="reminders" data-allowed-roles="owner,dev">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Erinnerungen
+            </a>
+
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="p-4 border-t border-gray-700/50">
+            <a href="https://selena.events" class="flex items-center text-sm text-gray-400 hover:text-white transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Zurück zur Webseite
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content wrapper -->
+    <div class="flex-1 flex flex-col min-w-0 bg-gray-50 h-full overflow-hidden">
+        
+        <!-- Header -->
+        <header class="h-16 sm:h-20 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-sm shrink-0">
+            <!-- Mobile menu button -->
+            <button id="mobile-menu-btn" class="md:hidden text-gray-500 hover:text-gold focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+
+            <!-- Profile / Actions -->
+            <div class="flex items-center space-x-4 ml-auto relative">
+                <div class="relative">
+                    <button id="avatar-btn" class="h-8 w-8 rounded-full bg-gold text-white flex items-center justify-center font-bold font-serif shadow-sm hover:ring-2 hover:ring-offset-2 hover:ring-gold transition-all focus:outline-none">
+                        S
+                    </button>
+                    <!-- Avatar Dropdown -->
+                    <div id="avatar-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border border-gray-100 z-50">
+                        <div class="px-4 py-2 border-b border-gray-100">
+                            <p class="text-sm font-medium text-gray-900 truncate" id="dropdown-email"></p>
+                            <p class="text-xs text-gray-500 capitalize" id="dropdown-role"></p>
+                        </div>
+                        <button id="logout-btn" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Abmelden</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 min-h-0 flex flex-col overflow-y-auto p-2 sm:p-6 lg:p-8">
+            
+            <!-- Dashboard Overview Section -->
+            <section id="section-dashboard" class="content-section fade-in">
+                <h1 class="text-2xl font-serif text-gray-900 mb-6">Dashboard Übersicht</h1>
+                <div id="stats-container" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                    <!-- Stat Card: Umsatz -->
+                    <div id="stat-card-umsatz" class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center cursor-pointer hover:shadow-md transition-shadow">
+                        <div class="p-3 rounded-full bg-blue-50 text-blue-500 mr-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Umsatz diesen Monat</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="stat-umsatz">0,00 €</p>
+                        </div>
+                    </div>
+                    <!-- Stat Card: Shop -->
+                    <div id="stat-card-shop" class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center cursor-pointer hover:shadow-md transition-shadow">
+                        <div class="p-3 rounded-full bg-green-50 text-green-500 mr-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Shop Bestellungen</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="stat-shop-orders">0</p>
+                        </div>
+                    </div>
+                    <!-- Stat Card: Verleih -->
+                    <div id="stat-card-verleih" class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center cursor-pointer hover:shadow-md transition-shadow">
+                        <div class="p-3 rounded-full bg-purple-50 text-purple-500 mr-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Aktive Verleihe</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="stat-verleih">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Latest Orders Preview -->
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+                    <h2 class="text-lg font-serif text-gray-900 mb-4">Neueste Aktivitäten</h2>
+                    <div id="latest-activities" class="space-y-4">
+                        <p class="text-gray-500 text-sm italic">Lade Daten...</p>
+                    </div>
+                </div>
+            </section>
+
+                        <!-- Verleih Section -->
+            <section id="section-verleih" class="content-section hidden fade-in">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+                    <div>
+                        <h1 class="text-2xl font-serif text-gray-900">Verleih & Mietobjekte</h1>
+                        <p class="text-xs text-gray-500 mt-0.5" id="verleih-filter-count">Lade Bestellungen...</p>
+                    </div>
+                    <button onclick="window.markAllAsRead('verleih')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">Alle als Angesehen markieren</button>
+                </div>
+
+                <!-- Filter & Search Toolbar (Verleih) -->
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-5 space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                        <div class="md:col-span-6 relative">
+                            <input id="search-verleih" type="search" placeholder="Suche nach Name, E-Mail, Telefon, Adresse oder Artikel..." class="w-full pl-9 pr-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-gold bg-gray-50/50">
+                            <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        <div class="md:col-span-3">
+                            <select id="sort-verleih" class="w-full py-2 px-3 text-xs border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gold">
+                                <option value="date_desc">📅 Neueste zuerst</option>
+                                <option value="date_asc">📅 Älteste zuerst</option>
+                                <option value="price_desc">💶 Höchster Betrag</option>
+                                <option value="price_asc">💶 Niedrigster Betrag</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3 flex items-center gap-1.5">
+                            <input id="date-from-verleih" type="date" class="w-1/2 py-1.5 px-2 text-xs border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gold" title="Von Datum">
+                            <span class="text-xs text-gray-400">-</span>
+                            <input id="date-to-verleih" type="date" class="w-1/2 py-1.5 px-2 text-xs border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gold" title="Bis Datum">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100">
+                        <span class="text-xs font-semibold text-gray-500 mr-1">Status:</span>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-900 text-white" data-target-type="verleih" data-status="all">Alle</button>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200" data-target-type="verleih" data-status="bezahlt">🟢 Bezahlt</button>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200" data-target-type="verleih" data-status="erstattet">🔴 Erstattet</button>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200" data-target-type="verleih" data-status="abgebrochen">⚪ Abgebrochen</button>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200" data-target-type="verleih" data-status="neu">🔴 Neu (Ungesehen)</button>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200" data-target-type="verleih" data-status="angesehen">⚪ Angesehen</button>
+                        <button type="button" id="reset-verleih-filters" class="ml-auto text-xs text-gray-500 hover:text-red-600 underline hidden">Filter zurücksetzen</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+                    <div id="verleih-orders-list" class="space-y-4">
+                        <p class="text-gray-500 text-sm italic">Lade Daten...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Shop Bestellungen Section -->
+            <section id="section-shop" class="content-section hidden fade-in">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+                    <div>
+                        <h1 class="text-2xl font-serif text-gray-900">Shop Bestellungen</h1>
+                        <p class="text-xs text-gray-500 mt-0.5" id="shop-filter-count">Lade Bestellungen...</p>
+                    </div>
+                    <button onclick="window.markAllAsRead('shop')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">Alle als Angesehen markieren</button>
+                </div>
+
+                <!-- Filter & Search Toolbar (Shop) -->
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-5 space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                        <div class="md:col-span-6 relative">
+                            <input id="search-shop" type="search" placeholder="Suche nach Name, E-Mail, Telefon, Adresse oder Artikel..." class="w-full pl-9 pr-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-gold bg-gray-50/50">
+                            <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        <div class="md:col-span-3">
+                            <select id="sort-shop" class="w-full py-2 px-3 text-xs border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gold">
+                                <option value="date_desc">📅 Neueste zuerst</option>
+                                <option value="date_asc">📅 Älteste zuerst</option>
+                                <option value="price_desc">💶 Höchster Betrag</option>
+                                <option value="price_asc">💶 Niedrigster Betrag</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3 flex items-center gap-1.5">
+                            <input id="date-from-shop" type="date" class="w-1/2 py-1.5 px-2 text-xs border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gold" title="Von Datum">
+                            <span class="text-xs text-gray-400">-</span>
+                            <input id="date-to-shop" type="date" class="w-1/2 py-1.5 px-2 text-xs border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gold" title="Bis Datum">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100">
+                        <span class="text-xs font-semibold text-gray-500 mr-1">Status:</span>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-900 text-white" data-target-type="shop" data-status="all">Alle</button>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200" data-target-type="shop" data-status="bezahlt">🟢 Bezahlt</button>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200" data-target-type="shop" data-status="erstattet">🔴 Erstattet</button>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200" data-target-type="shop" data-status="abgebrochen">⚪ Abgebrochen</button>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200" data-target-type="shop" data-status="neu">🔴 Neu (Ungesehen)</button>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200" data-target-type="shop" data-status="angesehen">⚪ Angesehen</button>
+                        <button type="button" id="reset-shop-filters" class="ml-auto text-xs text-gray-500 hover:text-red-600 underline hidden">Filter zurücksetzen</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+                    <div id="shop-orders-list" class="space-y-4">
+                        <p class="text-gray-500 text-sm italic">Lade Daten...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Packages Section -->
+            <section id="section-packages" class="content-section hidden fade-in h-full flex flex-col">
+                <div class="flex justify-between items-center mb-6 shrink-0">
+                    <div>
+                        <h2 class="text-2xl font-serif text-gray-900">Spezialpakete</h2>
+                        <p class="text-sm text-gray-500">Erstellen Sie benutzerdefinierte Pakete für den Shop.</p>
+                    </div>
+                    <button id="create-package-btn" class="bg-gold hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-colors flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Neues Paket
+                    </button>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex-1 flex flex-col">
+                    <div class="overflow-x-auto flex-1">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titel</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preis</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sichtbar</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="packages-tbody" class="bg-white divide-y divide-gray-200">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Products Section -->
+                        <!-- Startseite Highlights Section -->
+            <section id="section-featured-admin" class="content-section hidden fade-in">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-serif text-gray-900 flex items-center gap-2">
+                        <span>⭐</span> Top 3 Startseiten-Highlights (Shop & Verleih)
+                    </h2>
+                    <p class="text-sm text-gray-500">Wählen Sie hier 3 beliebige Produkte oder Spezialpakete aus, die auf der Startseite unter „Beliebte Produkte“ hervorgehoben werden.</p>
+                </div>
+                <div id="featured-admin-standalone-container"></div>
+            </section>
+
+            <section id="section-products" class="content-section hidden fade-in h-full flex flex-col">
+                <div class="flex justify-between items-center mb-6 shrink-0">
+                    <div>
+                        <h2 class="text-2xl font-serif text-gray-900">Produkte</h2>
+                        <p class="text-sm text-gray-500">Erstellen Sie eigene Produkte für den Shop oder Verleih.</p>
+                    </div>
+                    <div class="flex gap-2"><button id="import-catalog-btn" type="button" class="border border-gray-300 bg-white px-4 py-2 rounded-lg text-sm">Importă produsele existente</button><button id="create-product-btn" class="bg-gold hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-colors flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Neues Produkt
+                    </button></div>
+                </div>
+                <!-- Collapsible Transport Settings Dropdown -->
+                <div class="bg-white border border-gray-200 rounded-xl mb-5 shadow-sm overflow-hidden shrink-0">
+                    <button type="button" id="toggle-transport-settings" onclick="const f=document.getElementById('transport-settings-form'), c=document.getElementById('transport-settings-chevron'); f.classList.toggle('hidden'); c.classList.toggle('rotate-180');" class="w-full px-4 py-3 bg-gray-50/90 hover:bg-gray-100 flex items-center justify-between text-left transition-colors cursor-pointer">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-base">🚚</span>
+                            <div>
+                                <span class="text-sm font-semibold text-gray-800">Transport- & Lieferkosten Einstellungen</span>
+                                <span class="block text-xs text-gray-500">Klicken zum Öffnen / Schließen</span>
+                            </div>
+                        </div>
+                        <svg id="transport-settings-chevron" class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <form id="transport-settings-form" class="hidden p-4 border-t border-gray-100 grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+                        <div class="md:col-span-2">
+                            <label class="text-xs font-medium text-gray-700">Startadresse Transport</label>
+                            <input id="transport-origin" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-gold focus:ring-gold" value="Riesterstraße 8, 4050 Traun, Österreich">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-700">Inklusive km</label>
+                            <input id="transport-included-km" type="number" min="0" step="0.1" value="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-gold focus:ring-gold">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-700">Preis je km (€)</label>
+                            <input id="transport-price-km" type="number" min="0" step="0.01" value="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-gold focus:ring-gold">
+                        </div>
+                        <button class="bg-gray-900 hover:bg-black text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors">Transportcode speichern</button>
+                        <div class="md:col-span-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+                            <label class="text-sm text-gray-700 flex items-center gap-2 cursor-pointer">
+                                <input id="transport-roundtrip" type="checkbox" class="rounded border-gray-300 text-gold focus:ring-gold h-4 w-4" checked>
+                                <span>Hin- und Rückfahrt berechnen</span>
+                            </label>
+                            <p id="transport-settings-status" class="text-xs"></p>
+                        </div>
+                    </form>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex-1 flex flex-col">
+                    <div class="overflow-x-auto flex-1">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bild</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titel</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Typ (Ziel)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preis</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bestand</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transport</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sichtbar</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-tbody" class="bg-white divide-y divide-gray-200">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-portfolio-admin" class="content-section hidden fade-in"><div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><form id="portfolio-event-form" class="bg-white border rounded-xl p-6 space-y-4"><h2 class="text-2xl font-serif">Neue Event-Galerie</h2><input id="portfolio-title" required class="w-full border rounded px-3 py-2" placeholder="z.B. Taufe Sofia"><input id="portfolio-date" required type="date" class="w-full border rounded px-3 py-2"><select id="portfolio-category" class="w-full border rounded px-3 py-2"><option value="hochzeiten">Hochzeit</option><option value="taufen">Taufe</option><option value="geburtstage">Geburtstag</option><option value="events">Event</option></select><textarea id="portfolio-description" rows="3" class="w-full border rounded px-3 py-2" placeholder="Kurze Beschreibung"></textarea><label class="block text-sm">Bilder der Galerie<input id="portfolio-images" type="file" accept="image/*" multiple required class="block mt-2"></label><label class="text-sm"><input id="portfolio-visible" type="checkbox" checked> Öffentlich sichtbar</label><button class="bg-gold text-white px-5 py-2 rounded">Galerie speichern</button><p id="portfolio-status" class="text-sm"></p></form><div class="bg-white border rounded-xl p-6"><h3 class="font-semibold mb-4">Vorhandene Galerien</h3><div id="portfolio-admin-list" class="space-y-3"></div></div></div><form id="site-images-form" class="mt-6 bg-white border rounded-xl p-6"><h3 class="text-xl font-serif mb-2">Bilder auf der Startseite</h3><p class="text-sm text-gray-500 mb-4">Nur ausgewählte Bilder werden ersetzt; leere Felder behalten das aktuelle Bild.</p><div class="grid md:grid-cols-3 gap-4"><label class="text-sm">Hero Slide 1<input data-slot="hero1" type="file" accept="image/*" class="block mt-1"></label><label class="text-sm">Hero Slide 2<input data-slot="hero2" type="file" accept="image/*" class="block mt-1"></label><label class="text-sm">Hero Slide 3<input data-slot="hero3" type="file" accept="image/*" class="block mt-1"></label><label class="text-sm">Highlight 1<input data-slot="highlight1" type="file" accept="image/*" class="block mt-1"></label><label class="text-sm">Highlight 2<input data-slot="highlight2" type="file" accept="image/*" class="block mt-1"></label><label class="text-sm">Highlight 3<input data-slot="highlight3" type="file" accept="image/*" class="block mt-1"></label></div><button class="mt-5 bg-gray-900 text-white px-5 py-2 rounded">Bilder speichern</button><p id="site-images-status" class="mt-2 text-sm"></p></form></section>
+
+            <!-- Calendar Section -->
+            <section id="section-calendar" class="content-section hidden fade-in">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6">
+                    <div>
+                        <h1 class="text-3xl font-serif text-gray-900 mb-2">Event Kalender</h1>
+                        <p class="text-gray-500 text-sm">Übersicht aller Verleih-Daten und anstehenden Events.</p>
+                    </div>
+                    <button id="btn-add-event" class="hidden mt-4 sm:mt-0 bg-gold hover:bg-yellow-600 text-white px-4 py-2 rounded-md shadow-sm transition-colors font-medium text-sm flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Neues Event
+                    </button>
+                </div>
+                <div id="calendar-wrapper" class="w-full bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 overflow-x-auto relative">
+                    <!-- Decorative blur -->
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-gold rounded-full mix-blend-multiply filter blur-3xl opacity-10 pointer-events-none"></div>
+                    <div id="calendar" class="relative z-10 min-h-[500px]"></div>
+                </div>
+            </section>
+
+                        <!-- Messages Tab -->
+            <section id="section-messages" class="content-section hidden fade-in">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+                    <div>
+                        <h2 class="text-2xl font-serif text-gray-900">Nachrichten & Kontaktanfragen</h2>
+                        <p class="text-xs text-gray-500 mt-0.5" id="messages-filter-count">Lade Nachrichten...</p>
+                    </div>
+                    <button onclick="window.markAllMessagesAsRead()" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">Alle als Angesehen markieren</button>
+                </div>
+
+                <!-- Filter & Search Toolbar (Nachrichten) -->
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-5 space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                        <div class="md:col-span-6 relative">
+                            <input id="search-messages" type="search" placeholder="Suche nach Name, E-Mail, Telefon, Ort, Typ oder Nachricht..." class="w-full pl-9 pr-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-gold bg-gray-50/50">
+                            <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        <div class="md:col-span-3">
+                            <select id="sort-messages" class="w-full py-2 px-3 text-xs border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gold">
+                                <option value="date_desc">📅 Neueste zuerst</option>
+                                <option value="date_asc">📅 Älteste zuerst</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3 flex items-center gap-1.5">
+                            <input id="date-from-messages" type="date" class="w-1/2 py-1.5 px-2 text-xs border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gold" title="Von Datum">
+                            <span class="text-xs text-gray-400">-</span>
+                            <input id="date-to-messages" type="date" class="w-1/2 py-1.5 px-2 text-xs border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-gold" title="Bis Datum">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100">
+                        <span class="text-xs font-semibold text-gray-500 mr-1">Status:</span>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-900 text-white" data-target-type="messages" data-status="all">Alle</button>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200" data-target-type="messages" data-status="neu">🔴 Neu</button>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200" data-target-type="messages" data-status="angesehen">⚪ Angesehen</button>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200" data-target-type="messages" data-status="in_bearbeitung">🟡 In Bearbeitung</button>
+                        <button type="button" class="status-filter-btn px-3 py-1 text-xs rounded-full font-semibold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200" data-target-type="messages" data-status="erledigt">🟢 Erledigt</button>
+                        <button type="button" id="reset-messages-filters" class="ml-auto text-xs text-gray-500 hover:text-red-600 underline hidden">Filter zurücksetzen</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+                    <div id="messages-list" class="space-y-4">
+                        <p class="text-gray-500 text-sm italic">Lade Nachrichten...</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-customer-mail" class="content-section hidden fade-in h-full">
+                <div class="mb-6"><h2 class="text-2xl font-serif text-gray-900">Privates Kundenpostfach</h2><p class="text-sm text-gray-500">Nachrichten und PDF-Rechnungen sicher an einzelne Kunden senden.</p></div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[620px]">
+                    <div class="bg-white border border-gray-200 rounded-xl p-4">
+                        <input id="customer-mail-search" type="search" placeholder="Name oder E-Mail suchen" class="w-full border rounded-md px-3 py-2 mb-4">
+                        <div id="customer-mail-users" class="space-y-2 max-h-[540px] overflow-y-auto"><p class="text-sm text-gray-500">Kunden werden geladen...</p></div>
+                        <h3 class="font-semibold mt-6 mb-2">Stornierungsanfragen</h3><div id="cancellation-admin-list" class="space-y-2 max-h-64 overflow-y-auto"><p class="text-sm text-gray-500">Wird geladen...</p></div>
+                    </div>
+                    <div class="lg:col-span-2 bg-white border border-gray-200 rounded-xl flex flex-col">
+                        <div class="p-4 border-b"><h3 id="customer-mail-title" class="font-semibold">Kunde auswählen</h3></div>
+                        <div id="customer-mail-thread" class="flex-1 p-4 space-y-3 overflow-y-auto bg-gray-50"></div>
+                        <form id="customer-mail-form" class="p-4 border-t space-y-3 hidden">
+                            <input type="hidden" id="customer-mail-uid">
+                            <input type="text" id="customer-mail-subject" required maxlength="140" placeholder="Betreff" class="w-full border rounded-md px-3 py-2">
+                            <textarea id="customer-mail-body" required maxlength="5000" rows="4" placeholder="Private Nachricht an den Kunden" class="w-full border rounded-md px-3 py-2"></textarea>
+                            <div class="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                                <label class="text-sm text-gray-600">PDF-Rechnung (optional)<input id="customer-mail-invoice" type="file" accept="application/pdf" class="block mt-1 text-sm"></label>
+                                <button type="submit" class="bg-gold hover:bg-yellow-600 text-white px-5 py-2 rounded-md">Nachricht senden</button>
+                            </div>
+                            <p id="customer-mail-status" class="text-sm"></p>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Comments Tab -->
+            <section id="section-comments" class="content-section hidden fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-semibold text-gray-800">Kommentare (Ausstehend)</h2>
+                </div>
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Blog Post</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kommentar</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comments-list" class="bg-white divide-y divide-gray-200 text-sm">
+                                <tr><td colspan="4" class="px-6 py-4 text-center">Lade Kommentare...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Team Chat Tab -->
+            <section id="section-chat" class="content-section hidden fade-in flex-1 h-full min-h-0 flex flex-col">
+                <div class="bg-white rounded-xl shadow-md h-full min-h-0 flex flex-col md:flex-row overflow-hidden border border-gray-200">
+                    
+                    <!-- Mobile Channel Selector Bar (Dropdown Toggle) -->
+                    <div class="md:hidden border-b border-gray-200 bg-gray-50 shrink-0">
+                        <button id="mobile-chat-toggle-btn" type="button" class="w-full px-4 py-2.5 flex items-center justify-between text-left text-sm font-medium text-gray-800 hover:bg-gray-100 transition-colors">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block shrink-0 animate-pulse"></span>
+                                <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Kanal:</span>
+                                <span id="mobile-chat-current-name" class="font-bold text-gray-900 truncate"># General</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-xs font-semibold text-gold shrink-0">
+                                <span>Mitglieder & Kanäle</span>
+                                <svg id="mobile-chat-toggle-chevron" class="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Chat Sidebar (Channels/DMs) - Collapsible on Mobile, Permanent on Desktop -->
+                    <div id="chat-channels-container" class="hidden md:flex flex-col w-full md:w-72 bg-gray-50 border-r border-gray-200 shrink-0 border-b md:border-b-0 max-h-48 md:max-h-none overflow-y-auto transition-all">
+                        <div class="p-3.5 border-b border-gray-200 hidden md:flex items-center justify-between bg-gray-100/70">
+                            <h3 class="font-serif text-gray-900 text-base font-semibold">Team Chat</h3>
+                            <span class="text-[11px] bg-gold/10 text-gold px-2 py-0.5 rounded-full font-medium">Intern</span>
+                        </div>
+                        <div class="flex-1 overflow-y-auto">
+                            <div class="px-3 pt-3 pb-1 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Hauptkanal</div>
+                            <ul id="chat-channels-list-main" class="space-y-0.5 px-2">
+                                <li class="chat-channel-item active rounded-lg bg-white shadow-sm border-l-4 border-gold" data-channel="general" data-title="# General">
+                                    <button type="button" class="w-full text-left px-3 py-2.5 hover:bg-gold/5 transition-colors flex items-center rounded-lg">
+                                        <div class="w-8 h-8 rounded-full bg-gold text-white flex items-center justify-center mr-2.5 flex-shrink-0 font-bold text-sm shadow-sm">
+                                            #
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-sm font-semibold text-gray-900 truncate">General</p>
+                                            <p class="text-xs text-gray-500 truncate">Für das gesamte Team</p>
+                                        </div>
+                                    </button>
+                                </li>
+                            </ul>
+                            
+                            <div class="px-3 pt-4 pb-1 text-[11px] font-bold text-gray-400 uppercase tracking-wider flex items-center justify-between">
+                                <span>Direktnachrichten</span>
+                                <span id="chat-dm-count" class="text-[10px] text-gray-400 font-normal"></span>
+                            </div>
+                            <ul id="chat-channels-list" class="space-y-0.5 px-2 pb-3">
+                                <!-- DMs will be populated here -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Chat Area -->
+                    <div class="flex-1 min-h-0 flex flex-col h-full bg-white relative min-w-0">
+                        <div class="p-3 md:p-4 border-b border-gray-100 shadow-sm z-10 bg-white flex justify-between items-center shrink-0">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></div>
+                                <h3 id="current-chat-title" class="font-semibold text-gray-900 text-sm md:text-base truncate"># General</h3>
+                            </div>
+                            <span class="text-xs text-gray-400 shrink-0">Ende-zu-Ende verschlüsselt</span>
+                        </div>
+                        <div id="chat-messages" class="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-3 bg-gray-50/50">
+                            <p class="text-center text-gray-400 text-sm py-4">Lade Nachrichten...</p>
+                        </div>
+                        <div class="p-2 sm:p-3.5 bg-white border-t border-gray-100 shrink-0">
+                            <form id="chat-form" class="flex items-end gap-2">
+                                <label for="chat-image-upload" title="Bild anhängen" class="cursor-pointer p-2 text-gray-400 hover:text-gold hover:bg-gold/5 rounded-lg transition-colors flex-shrink-0">
+                                    <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L28 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <input type="file" id="chat-image-upload" accept="image/*" class="hidden">
+                                </label>
+                                <div class="flex-1 relative">
+                                    <div id="chat-image-preview" class="hidden absolute bottom-full mb-2 left-0 w-32 h-32 bg-gray-100 rounded-lg border border-gray-200 overflow-hidden shadow-lg">
+                                        <img src="" id="chat-preview-img" class="w-full h-full object-cover">
+                                        <button type="button" id="chat-remove-image" class="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                                    </div>
+                                    <textarea id="chat-input" rows="1" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm resize-none p-2.5 sm:p-3 block max-h-24" placeholder="Schreibe eine Nachricht..."></textarea>
+                                </div>
+                                <button type="submit" class="bg-gold hover:bg-yellow-600 text-white p-2.5 sm:p-3 rounded-xl shadow-sm transition-colors flex-shrink-0 flex items-center justify-center">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Members Tab -->
+            <section id="section-members" class="content-section hidden fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-semibold text-gray-800">Mitglieder Verwaltung</h2>
+                    <button id="add-member-btn" class="bg-gold text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600 transition-colors shadow-sm">Rolle zuweisen</button>
+                </div>
+                
+                <div id="add-member-form" class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6 hidden">
+                    <h3 class="font-serif text-lg mb-4 text-gray-800">Rolle einem Nutzer zuweisen</h3>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Benutzer UID</label>
+                            <input type="text" id="member-uid" placeholder="z.B. ABc123xyz..." class="w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Rolle</label>
+                            <select id="member-role" class="w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm">
+                                <option value="volunteer">Volunteer (Helfer)</option>
+                                <option value="dev">Developer</option>
+                                <option value="owner">Owner</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button id="save-member-btn" class="bg-black text-white px-6 py-2 rounded-md hover:bg-gray-800 transition-colors w-full sm:w-auto h-[38px]">Speichern</button>
+                        </div>
+                    </div>
+                    <p id="member-save-status" class="text-sm mt-3 text-green-600 hidden"></p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">UID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rolle</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="members-list" class="bg-white divide-y divide-gray-200 text-sm">
+                                <tr><td colspan="3" class="px-6 py-4 text-center">Lade Mitglieder...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-reminders" class="content-section hidden fade-in">
+                <h1 class="text-2xl font-serif text-gray-900 mb-6">Erinnerungen</h1>
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+                    <p class="text-gray-500 italic">Keine neuen Erinnerungen vorhanden.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add Event Modal -->
+    <div id="add-event-modal" class="fixed inset-0 bg-[#1f2937] bg-opacity-75 z-[100] hidden flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl max-w-md w-full relative">
+            <button id="close-add-event" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h2 class="text-2xl font-serif text-gray-900 mb-6">Neues Event</h2>
+            <form id="add-event-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Event Name</label>
+                    <input type="text" id="event-name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm px-3 py-2 border">
+                </div>
+                <div class="flex space-x-4">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700">Datum</label>
+                        <input type="date" id="event-date" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm px-3 py-2 border">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700">Uhrzeit (Optional)</label>
+                        <input type="time" id="event-time" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm px-3 py-2 border">
+                    </div>
+                </div>
+                <div class="flex items-center mt-4">
+                    <input id="event-needs-volunteers" type="checkbox" class="h-4 w-4 text-gold focus:ring-gold border-gray-300 rounded">
+                    <label for="event-needs-volunteers" class="ml-2 block text-sm text-gray-900">
+                        Helfer benötigt? (Volunteers können sich eintragen)
+                    </label>
+                </div>
+                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gold hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold transition-colors mt-6">
+                    Event Speichern
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, query, onSnapshot, updateDoc, deleteDoc, doc, collectionGroup, orderBy, addDoc, serverTimestamp, getDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAw_TmBCgvAwFPZkJ8RQ7_jSFB62KgQVqc",
+            authDomain: "selena-events-dashboard.firebaseapp.com",
+            projectId: "selena-events-dashboard",
+            storageBucket: "selena-events-dashboard.firebasestorage.app",
+            messagingSenderId: "535842804912",
+            appId: "1:535842804912:web:7464adf97bcdf456131775",
+            measurementId: "G-6CXF223NQE"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
+
+        // Make globally available if needed
+        window.db = db;
+        window.auth = auth;
+        window.storage = storage;
+        window.firebaseCollection = collection;
+        window.firebaseQuery = query;
+        window.firebaseOnSnapshot = onSnapshot;
+        window.firebaseOrderBy = orderBy;
+        window.firebaseDoc = doc;
+        window.firebaseGetDoc = getDoc;
+        window.firebaseGetDocs = getDocs;
+        window.firebaseSetDoc = setDoc;
+        window.firebaseAddDoc = addDoc;
+        window.firebaseDeleteDoc = deleteDoc;
+        window.firebaseUpdateDoc = updateDoc;
+        window.firebaseServerTimestamp = serverTimestamp;
+        window.firebaseRef = ref;
+        window.firebaseUploadBytes = uploadBytes;
+        window.firebaseGetDownloadURL = getDownloadURL;
+
+        // Auth Logic
+        const loginOverlay = document.getElementById('login-overlay');
+        const loginForm = document.getElementById('login-form');
+        const loginEmail = document.getElementById('login-email');
+        const loginPassword = document.getElementById('login-password');
+        const keepLoggedIn = document.getElementById('keep-logged-in');
+        const loginError = document.getElementById('login-error');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        
+        window.deleteMessage = function(id) {
+            showCustomConfirm('Nachricht löschen', 'Möchten Sie diese Nachricht wirklich dauerhaft löschen?', async () => {
+                await deleteDoc(doc(db, 'messages', id));
+            });
+        };
+
+        // === COMMENTS MODERATION LOGIC ===
+        async function loadPendingComments() {
+            try {
+                const list = document.getElementById('comments-list');
+                if(!list) return;
+
+                function renderComments(combined) {
+                    let html = '';
+                    let hasComments = false;
+                    
+                    combined.sort((a, b) => b.time - a.time);
+
+                    combined.forEach((item) => {
+                        hasComments = true;
+                        const data = item.data;
+                        html += `
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-gray-500">${item.slug}</td>
+                                <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+                                    ${data.name} <br>
+                                    <span class="text-xs px-2 py-1 rounded ${data.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}">
+                                        ${data.status || 'unknown'}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-gray-500"><div class="max-w-md">${data.text}</div></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    ${data.status !== 'approved' ? `<button onclick="approveComment('${item.slug}', '${item.id}')" class="text-green-600 hover:text-green-900 mr-3">Freigeben</button>` : ''}
+                                    <button onclick="deleteComment('${item.slug}', '${item.id}')" class="text-red-600 hover:text-red-900">Löschen</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    if(!hasComments) html = '<tr><td colspan="4" class="px-6 py-4 text-center">Keine ausstehenden Kommentare.<br><br><button onclick="testAddComment()" class="bg-blue-500 text-white px-4 py-2 rounded">TEST-KOMMENTAR HINZUFÜGEN</button></td></tr>';
+                    list.innerHTML = html;
+                }
+                
+                const q = query(collectionGroup(db, 'comments'));
+                onSnapshot(q, (snapshot) => {
+                    let allCommentsList = [];
+                    snapshot.forEach((d) => {
+                        const data = d.data();
+                        const slug = d.ref.parent.parent.id;
+                        allCommentsList.push({
+                            id: d.id,
+                            slug: slug,
+                            data: data,
+                            time: data.createdAt ? data.createdAt.toMillis() : 0
+                        });
+                    });
+                    renderComments(allCommentsList);
+                }, (error) => {
+                    console.error("Error fetching comments:", error);
+                    if (list) {
+                        list.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-red-500 font-bold">Fehler: ${error.message} <br>Ihre aktuelle UID: ${auth.currentUser?.uid}</td></tr>`;
+                    }
+                });
+
+            } catch(e) {
+                console.error('Error setting up comments snapshot:', e);
+            }
+        }
+
+        window.testAddComment = async function() {
+            try {
+                const slug = 'danke-fr-ein-wundervolles-jahr-2026';
+                const commentsRef = collection(db, 'blog_posts', slug, 'comments');
+                await addDoc(commentsRef, {
+                    name: 'Test Admin',
+                    text: 'Dies ist ein Test-Kommentar, um zu prüfen ob die Verbindung funktioniert.',
+                    status: 'pending',
+                    createdAt: new Date()
+                });
+                alert('Test-Kommentar wurde erfolgreich gesendet! Er sollte jetzt in der Liste erscheinen.');
+            } catch(error) {
+                alert('Fehler beim Senden: ' + error.message);
+            }
+        };
+
+        function showCustomConfirm(title, msg, onConfirm) {
+            let modal = document.getElementById('admin-confirm-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'admin-confirm-modal';
+                modal.className = 'fixed inset-0 z-50 flex items-center justify-center hidden';
+                modal.innerHTML = `
+                    <div class="fixed inset-0 bg-black opacity-50 transition-opacity" onclick="document.getElementById('admin-confirm-modal').classList.add('hidden')"></div>
+                    <div class="bg-white p-8 max-w-sm w-full z-10 rounded-lg shadow-2xl transform transition-transform duration-300 mx-4 relative text-center">
+                        <svg class="mx-auto mb-4 w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        <h3 id="admin-confirm-title" class="text-xl font-serif mb-2 text-gray-900"></h3>
+                        <p id="admin-confirm-msg" class="text-gray-500 mb-6"></p>
+                        <div class="flex gap-4">
+                            <button id="admin-confirm-cancel" class="w-1/2 bg-gray-200 text-gray-800 font-serif tracking-widest uppercase py-3 hover:bg-gray-300 transition-colors rounded">Abbrechen</button>
+                            <button id="admin-confirm-ok" class="w-1/2 bg-red-600 text-white font-serif tracking-widest uppercase py-3 hover:bg-red-700 transition-colors rounded">Löschen</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                document.getElementById('admin-confirm-cancel').addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                });
+            }
+            
+            document.getElementById('admin-confirm-title').textContent = title;
+            document.getElementById('admin-confirm-msg').textContent = msg;
+            
+            const okBtn = document.getElementById('admin-confirm-ok');
+            // Remove old listeners
+            const newOkBtn = okBtn.cloneNode(true);
+            okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+            
+            newOkBtn.addEventListener('click', async () => {
+                modal.classList.add('hidden');
+                await onConfirm();
+            });
+            
+            modal.classList.remove('hidden');
+        }
+
+        window.showCustomAlert = function(title, msg) {
+            let modal = document.getElementById('admin-alert-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'admin-alert-modal';
+                modal.className = 'fixed inset-0 z-[100] flex items-center justify-center hidden';
+                modal.innerHTML = `
+                    <div class="fixed inset-0 bg-black opacity-50 transition-opacity" onclick="document.getElementById('admin-alert-modal').classList.add('hidden')"></div>
+                    <div class="bg-white p-8 max-w-sm w-full z-10 rounded-lg shadow-2xl transform transition-transform duration-300 mx-4 relative text-center">
+                        <svg class="mx-auto mb-4 w-12 h-12 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <h3 id="admin-alert-title" class="text-xl font-serif mb-2 text-gray-900"></h3>
+                        <p id="admin-alert-msg" class="text-gray-500 mb-6 whitespace-pre-wrap"></p>
+                        <button id="admin-alert-ok" class="w-full bg-gold text-white font-serif tracking-widest uppercase py-3 hover:bg-yellow-600 transition-colors rounded">OK</button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                document.getElementById('admin-alert-ok').addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                });
+            }
+            document.getElementById('admin-alert-title').textContent = title;
+            document.getElementById('admin-alert-msg').textContent = msg;
+            modal.classList.remove('hidden');
+        }
+
+        window.showEventManageModal = function(title, msg, orderId, currentHelpers, volunteersList) {
+            let modal = document.getElementById('event-manage-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'event-manage-modal';
+                modal.className = 'fixed inset-0 z-[100] flex items-center justify-center hidden';
+                document.body.appendChild(modal);
+            }
+            
+            let optionsHtml = '<option value="">-- Helfer auswählen --</option>';
+            volunteersList.forEach(v => {
+                if(!currentHelpers.includes(v.uid)) {
+                    const label = (v.name || v.displayName) ? `${v.name || v.displayName} (${v.email || 'Helfer'})` : (v.email || v.uid.substring(0,8));
+                    optionsHtml += `<option value="${v.uid}">${label}</option>`;
+                }
+            });
+
+            modal.innerHTML = `
+                <div class="fixed inset-0 bg-black opacity-50 transition-opacity" onclick="document.getElementById('event-manage-modal').classList.add('hidden')"></div>
+                <div class="bg-white p-8 max-w-md w-full z-10 rounded-lg shadow-2xl transform transition-transform duration-300 mx-4 relative text-left">
+                    <h3 id="event-manage-title" class="text-xl font-serif mb-4 text-gray-900 border-b pb-2">${title}</h3>
+                    <p id="event-manage-msg" class="text-sm text-gray-600 mb-6 whitespace-pre-wrap max-h-60 overflow-y-auto">${msg}</p>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Helfer manuell zuweisen</label>
+                        <div class="flex gap-2">
+                            <select id="event-manage-select" class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gold focus:border-gold block w-full p-2.5">
+                                ${optionsHtml}
+                            </select>
+                            <button id="event-manage-add-btn" class="bg-gold text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition">Zuweisen</button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end mt-4">
+                        <button class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300" onclick="document.getElementById('event-manage-modal').classList.add('hidden')">Schließen</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('event-manage-add-btn').addEventListener('click', async () => {
+                const uid = document.getElementById('event-manage-select').value;
+                if(!uid) return;
+                try {
+                    const orderRef = window.firebaseDoc(window.db, "orders", orderId);
+                    currentHelpers.push(uid);
+                    await window.firebaseSetDoc(orderRef, { helpers: currentHelpers }, { merge: true });
+                    window.showCustomAlert('Erfolg', 'Helfer wurde erfolgreich zugewiesen!');
+                    modal.classList.add('hidden');
+                } catch(e) {
+                    window.showCustomAlert('Fehler', e.message);
+                }
+            });
+            
+            modal.classList.remove('hidden');
+        }
+
+        window.approveComment = async function(postSlug, commentId) {
+            await updateDoc(doc(db, 'blog_posts', postSlug, 'comments', commentId), { status: 'approved' });
+        };
+        
+        window.deleteComment = function(postSlug, commentId) {
+            showCustomConfirm('Kommentar löschen', 'Möchten Sie diesen Kommentar wirklich dauerhaft löschen?', async () => {
+                await deleteDoc(doc(db, 'blog_posts', postSlug, 'comments', commentId));
+            });
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const uidDisplay = document.getElementById('admin-uid-display');
+                    if(uidDisplay) uidDisplay.innerText = `UID: ${user.uid}`;
+                    
+                    // Check Role
+                    let roleDoc;
+                    try {
+                        roleDoc = await getDoc(doc(db, 'user_roles', user.uid));
+                    } catch (e) {
+                        console.error("Error reading role:", e);
+                        throw new Error("Fehler beim Lesen der Berechtigungen. Evtl. blockieren die Firebase Rules den Zugriff.");
+                    }
+
+                    let role = 'customer';
+
+                    if (roleDoc && roleDoc.exists()) {
+                        role = roleDoc.data().role;
+                    }
+                    
+                    if (!['owner', 'dev', 'volunteer'].includes(role)) {
+                        await signOut(auth);
+                        showCustomAlert('Zugriff verweigert', 'Sie haben keine Berechtigung für dieses Portal.');
+                        return;
+                    }
+                    
+                    window.currentUserRole = role;
+                    window.currentUserId = user.uid;
+                    
+                    // Dispatch event so dashboard.js can initialize UI
+                    document.dispatchEvent(new CustomEvent('userRoleLoaded', { detail: { role, user } }));
+
+                    if (loginOverlay) {
+                        loginOverlay.style.opacity = '0';
+                        
+                        if (role === 'owner' || role === 'dev') {
+                            
+                            loadPendingComments();
+                        }
+                        
+                        setTimeout(() => { loginOverlay.classList.add('hidden'); }, 300);
+                    }
+                } catch (err) {
+                    await signOut(auth);
+                    showCustomAlert('Systemfehler', err.message);
+                }
+            } else {
+                window.currentUserRole = null;
+                window.currentUserId = null;
+                if (loginOverlay) {
+                    loginOverlay.classList.remove('hidden');
+                    setTimeout(() => { loginOverlay.style.opacity = '1'; }, 10);
+                }
+            }
+        });
+
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = loginEmail.value.trim();
+                const password = loginPassword.value;
+                const rememberMe = keepLoggedIn.checked;
+
+                try {
+                    loginError.classList.add('hidden');
+                    const persistenceType = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+                    await setPersistence(auth, persistenceType);
+                    await signInWithEmailAndPassword(auth, email, password);
+                    loginForm.reset();
+                } catch (error) {
+                    console.error("Login error:", error);
+                    loginError.classList.remove('hidden');
+                    switch (error.code) {
+                        case 'auth/invalid-credential':
+                        case 'auth/user-not-found':
+                        case 'auth/wrong-password':
+                            loginError.textContent = 'Falsche E-Mail-Adresse oder falsches Passwort.';
+                            break;
+                        case 'auth/too-many-requests':
+                            loginError.textContent = 'Zu viele Versuche. Bitte versuchen Sie es später.';
+                            break;
+                        default:
+                            loginError.textContent = 'Fehler: ' + error.message;
+                    }
+                }
+            });
+        }
+
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                } catch (error) {
+                    console.error("Logout error:", error);
+                    window.showCustomAlert('Fehler', "Fehler beim Abmelden.");
+                }
+            });
+        }
+    </script>
+    <!-- Umsatz Historie Modal -->
+    <div id="umsatz-historie-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-gray-900 to-black p-6 flex justify-between items-center">
+                <h3 class="text-xl font-serif text-gold">Umsatz Historie</h3>
+                <button id="close-umsatz-modal" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <!-- Body -->
+            <div class="p-6">
+                <!-- Filters -->
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button class="umsatz-filter-btn px-4 py-2 text-sm rounded-md bg-gold text-white font-medium shadow-sm transition hover:bg-yellow-600" data-filter="this_month">Dieser Monat</button>
+                    <button class="umsatz-filter-btn px-4 py-2 text-sm rounded-md bg-gray-100 text-gray-700 font-medium transition hover:bg-gray-200" data-filter="last_month">Letzter Monat</button>
+                    <button class="umsatz-filter-btn px-4 py-2 text-sm rounded-md bg-gray-100 text-gray-700 font-medium transition hover:bg-gray-200" data-filter="last_3_months">Letzte 3 Monate</button>
+                    <button class="umsatz-filter-btn px-4 py-2 text-sm rounded-md bg-gray-100 text-gray-700 font-medium transition hover:bg-gray-200" data-filter="this_year">Dieses Jahr</button>
+                    <button class="umsatz-filter-btn px-4 py-2 text-sm rounded-md bg-gray-100 text-gray-700 font-medium transition hover:bg-gray-200" data-filter="all_time">Gesamter Zeitraum</button>
+                </div>
+                
+                <!-- Display -->
+                <div class="bg-gray-50 rounded-xl p-8 text-center border border-gray-100">
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2" id="umsatz-modal-title">Umsatz diesen Monat</p>
+                    <p class="text-5xl font-semibold text-gray-900 tracking-tight" id="umsatz-modal-amount">0,00 €</p>
+                    <p class="text-xs text-gray-400 text-center mt-6">* Der Umsatz berechnet sich aus allen Bestellungen (Shop und Verleih) im gewählten Zeitraum.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reply to Inquiry Modal -->
+    <div id="inquiry-reply-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 mx-4">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-gray-900 to-black p-6 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center text-gold">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-serif text-white">Auf Anfrage antworten</h3>
+                        <p class="text-xs text-gray-400">E-Mail wird direkt an den Kunden gesendet</p>
+                    </div>
+                </div>
+                <button id="close-reply-modal-btn" type="button" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <!-- Body -->
+            <form id="inquiry-reply-form" class="p-6 space-y-4">
+                <input type="hidden" id="reply-message-id">
+                <input type="hidden" id="reply-customer-email">
+                <input type="hidden" id="reply-customer-name">
+                <input type="hidden" id="reply-original-text">
+                
+                <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-100 text-xs text-gray-600 space-y-1.5">
+                    <p><strong>Empfänger:</strong> <span id="reply-recipient-display" class="text-gray-900 font-medium"></span></p>
+                    <p><strong>Ursprüngliche Nachricht:</strong></p>
+                    <p id="reply-original-preview" class="text-gray-500 italic bg-white p-2.5 rounded-lg border border-gray-100 max-h-24 overflow-y-auto whitespace-pre-wrap"></p>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">Ihre Antwort (per E-Mail an den Kunden)</label>
+                    <textarea id="reply-content-input" rows="5" required placeholder="Guten Tag, vielen Dank für Ihre Anfrage..." class="w-full rounded-xl border-gray-300 shadow-sm focus:border-gold focus:ring-gold text-sm p-3.5"></textarea>
+                </div>
+                
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" id="cancel-reply-btn" class="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">Abbrechen</button>
+                    <button type="submit" id="send-reply-submit-btn" class="px-5 py-2 bg-gold hover:bg-yellow-600 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors flex items-center gap-2">
+                        <span>Antwort senden</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script type="module" src="js/firebase-config.js"></script>
+    <script src="js/dashboard.js?v=3.8"></script>
+    <script src="js/calendar.js"></script>
+    <script type="module" src="js/admin-commerce.js?v=3.2"></script>
+
+    <script>
+        // Simple avatar dropdown toggle logic
+        document.getElementById('avatar-btn').addEventListener('click', () => {
+            const dropdown = document.getElementById('avatar-dropdown');
+            dropdown.classList.toggle('hidden');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#avatar-btn') && !e.target.closest('#avatar-dropdown')) {
+                const avDropdown = document.getElementById('avatar-dropdown');
+                if(avDropdown) avDropdown.classList.add('hidden');
+            }
+        });
+    </script>
+
+    <!-- Package Modal -->
+    <div id="package-modal" class="fixed inset-0 bg-[#1f2937]/80 backdrop-blur-sm z-[200] hidden items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center shrink-0">
+                <h3 class="text-xl font-serif text-gray-900" id="package-modal-title">Neues Spezialpaket</h3>
+                <button class="text-gray-400 hover:text-gray-600 transition-colors" id="close-package-modal">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1">
+                <form id="package-form" class="space-y-6">
+                    <input type="hidden" id="pkg-id" value="">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Titel</label>
+                                <input type="text" id="pkg-title" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm border px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Beschreibung</label>
+                                <textarea id="pkg-desc" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm border px-3 py-2"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Sonderpreis (€)</label>
+                                <input type="number" id="pkg-price" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm border px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Tags / Schlagwörter (kommagetrennt)</label>
+                                <input type="text" id="pkg-tags" placeholder="z.B. Sparpaket, Hochzeit, Bestseller" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm border px-3 py-2">
+                            </div>
+                                                        <div class="rounded-lg border border-gold/40 bg-yellow-50/60 p-3 mt-4">
+                                <label class="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-1">⭐ Startseite Highlight (Slot)</label>
+                                <select id="pkg-featured-slot" class="w-full border rounded-md px-3 py-1.5 text-xs bg-white">
+                                    <option value="">Nicht auf Startseite hervorheben</option>
+                                    <option value="0">Als Highlight 1 (Links) anzeigen</option>
+                                    <option value="1">Als Highlight 2 (Mitte) anzeigen</option>
+                                    <option value="2">Als Highlight 3 (Rechts) anzeigen</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center mt-4">
+                                <input type="checkbox" id="pkg-visible" class="h-4 w-4 text-gold focus:ring-gold border-gray-300 rounded" checked>
+                                <label class="ml-2 block text-sm text-gray-700">Sichtbar im globalen Shop ("Spezialangebote")</label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Artikel auswählen</label>
+                            <div class="border border-gray-200 rounded-lg h-64 overflow-y-auto p-2 space-y-2 bg-gray-50" id="pkg-items-list">
+                                <!-- Catalog items will be injected here with checkboxes -->
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Wählen Sie die Artikel aus dem Katalog. Das Bild des ersten Artikels wird als Paketbild verwendet.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 border-t border-gray-100 flex justify-end space-x-3 shrink-0 bg-gray-50 rounded-b-xl -mx-6 -mb-6 mt-6">
+                        <button type="button" id="cancel-package-modal" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Abbrechen</button>
+                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gold hover:bg-yellow-600">Speichern</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="product-modal" class="fixed inset-0 bg-[#1f2937]/80 backdrop-blur-sm z-[200] hidden items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center shrink-0">
+                <h3 class="text-xl font-serif text-gray-900" id="product-modal-title">Neues Produkt</h3>
+                <button class="text-gray-400 hover:text-gray-600 transition-colors" id="close-product-modal">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1">
+                <form id="product-form" class="space-y-6">
+                      <input type="hidden" id="prod-id">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Kategorie-ID (e.g. hochzeitsdeko, events, stuhle)</label>
+                                <input type="text" id="prod-category" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm border px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Titel</label>
+                                <input type="text" id="prod-title" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm border px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Kurzbeschreibung (subtitle)</label>
+                                <textarea id="prod-desc" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm border px-3 py-2"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Tags / Schlagwörter (kommagetrennt)</label>
+                                <input type="text" id="prod-tags" placeholder="z.B. Hochzeit, Geburtstag, Fotoecke, Kinderparty" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm border px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Preisanzeige</label>
+                                <select id="prod-price-mode" onchange="window.handlePriceModeChange()" class="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm border px-3 py-2 bg-white">
+                                    <option value="fixed">Normaler Preis</option>
+                                    <option value="from">Preis ab</option>
+                                    <option value="request">Preis auf Anfrage (Kein Kaufpreis)</option>
+                                </select>
+                            </div>
+                            <div id="prod-price-container">
+                                <label class="block text-sm font-medium text-gray-700">Preis (€)</label>
+                                <input type="number" id="prod-price" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm border px-3 py-2">
+                                <p id="prod-price-hint" class="text-xs text-amber-600 mt-1 hidden">Bei 'Preis auf Anfrage' wird der Preis ausgeblendet und Kunden können direkt eine unverbindliche Anfrage senden.</p>
+                            </div>
+                            <div class="rounded-lg border border-amber-200 bg-amber-50 p-3"><label class="flex items-start gap-2 text-sm text-gray-800"><input type="checkbox" id="prod-decoration-service" class="mt-1 h-4 w-4"><span><strong>Dekorationsservice – kein Verkauf</strong><br><span class="text-xs text-gray-600">Blendet den Eigentumshinweis automatisch unter dem Preis ein.</span></span></label></div>
+                            <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm font-medium text-gray-700">Bestand</label><input type="number" id="prod-stock" min="0" step="1" value="0" class="mt-1 w-full rounded-md border px-3 py-2"></div><div><label class="block text-sm font-medium text-gray-700">Warnung ab</label><input type="number" id="prod-low-stock" min="0" step="1" value="2" class="mt-1 w-full rounded-md border px-3 py-2"></div></div>
+                            <div class="flex items-center gap-2"><input type="checkbox" id="prod-track-stock" class="h-4 w-4"><label for="prod-track-stock" class="text-sm text-gray-700">Bestand verwalten</label></div>
+                            <div class="rounded-lg border border-gray-200 bg-gray-50/70 p-3 space-y-3">
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="prod-transport-enabled" class="h-4 w-4 text-gold rounded border-gray-300">
+                                    <label for="prod-transport-enabled" class="text-sm font-medium text-gray-800 cursor-pointer">Transportkosten berechnen (Lieferung)</label>
+                                </div>
+                                <div id="prod-transport-fields" class="hidden space-y-3 pt-2 border-t border-gray-200">
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-700">Preis pro km (€)</label>
+                                            <input type="number" id="prod-price-per-km" min="0" step="0.01" value="0.50" placeholder="0.50" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm bg-white focus:border-gold focus:ring-gold">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-700">Pauschale (€, optional)</label>
+                                            <input type="number" id="prod-transport-flat" min="0" step="0.01" value="0" placeholder="0.00" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm bg-white focus:border-gold focus:ring-gold">
+                                        </div>
+                                    </div>
+                                    <p class="text-[11px] text-gray-500">Berechnet die Fahrtstrecke automatisch von Traun (HQ) zur Lieferadresse des Kunden.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Lange Beschreibung (features, comma separated)</label>
+                                <textarea id="prod-long-desc" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm border px-3 py-2"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Typ (Zielseite)</label>
+                                <select id="prod-target" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold sm:text-sm border px-3 py-2">
+                                    <option value="shop">Shop</option>
+                                    <option value="verleih">Verleih</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Bild (Upload)</label>
+                                <input type="file" id="prod-image-file" accept="image/*" multiple class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100">
+                                <p class="text-xs text-gray-500 mt-1" id="prod-image-status"></p>
+                                  <div id="prod-existing-images" class="mt-3 flex flex-wrap gap-2"></div>
+                            </div>
+                            <div class="flex items-center mt-4">
+                                <input type="checkbox" id="prod-visible" class="h-4 w-4 text-gold focus:ring-gold border-gray-300 rounded" checked>
+                                <label class="ml-2 block text-sm text-gray-700">Aktiv / Sichtbar</label>
+                            </div>
+                                                          <div class="rounded-lg border border-gold/40 bg-yellow-50/60 p-3">
+                                <label class="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-1">⭐ Startseite Highlight (Slot)</label>
+                                <select id="prod-featured-slot" class="w-full border rounded-md px-3 py-1.5 text-xs bg-white">
+                                    <option value="">Nicht auf Startseite hervorheben</option>
+                                    <option value="0">Als Highlight 1 (Links) anzeigen</option>
+                                    <option value="1">Als Highlight 2 (Mitte) anzeigen</option>
+                                    <option value="2">Als Highlight 3 (Rechts) anzeigen</option>
+                                </select>
+                            </div>
+                              <div class="flex items-center mt-4">
+                                  <input type="checkbox" id="prod-premium" class="h-4 w-4 text-gold focus:ring-gold border-gray-300 rounded">
+                                  <label class="ml-2 block text-sm text-gray-700">Premium Item</label>
+                              </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 border-t border-gray-100 flex justify-end space-x-3 shrink-0 bg-gray-50 rounded-b-xl -mx-6 -mb-6 mt-6">
+                        <button type="button" id="cancel-product-modal" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Abbrechen</button>
+                        <button type="submit" id="save-product-btn" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gold hover:bg-yellow-600 flex items-center">
+                            <span id="save-product-text">Speichern</span>
+                            <svg id="save-product-spinner" class="hidden animate-spin ml-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+
+
+

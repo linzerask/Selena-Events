@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Selena Events</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="icon" type="image/png" href="../assets/logo_dark.png">
+</head>
+<body class="bg-white antialiased">
+    <!-- Header -->
+    <div id="header-container"></div>
+
+    <main class="pt-32 pb-24 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md mx-auto">
+            <div class="bg-white py-8 px-10 border border-gray-200 shadow-sm">
+                <h1 class="text-3xl font-serif text-center mb-6">Log In</h1>
+                
+                <form id="login-form" class="space-y-6">
+                    <div id="login-error" class="hidden bg-red-50 text-red-600 text-sm p-3 border border-red-200"></div>
+                    
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+                        <input type="email" id="email" name="email" required class="w-full px-4 py-2 border border-gray-300 focus:border-gold focus:ring-0 transition-colors">
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label for="password" class="block text-sm font-medium text-gray-700">Password *</label>
+                            <a href="reset-password.html" class="text-xs text-gray-500 hover:text-gold transition-colors">Forgot password?</a>
+                        </div>
+                        <input type="password" id="password" name="password" required class="w-full px-4 py-2 border border-gray-300 focus:border-gold focus:ring-0 transition-colors">
+                    </div>
+                    
+                    <button type="submit" id="login-btn" class="w-full bg-gold text-white font-serif tracking-widest uppercase py-3 hover:bg-black transition-colors">
+                        Sign In
+                    </button>
+                </form>
+                
+                <div class="mt-8 text-center text-sm text-gray-600 border-t border-gray-100 pt-6">
+                    New here? <a href="register.html" class="text-gold font-medium hover:underline">Create an account now</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Error Modal -->
+    <div id="error-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="fixed inset-0 bg-black opacity-50 transition-opacity" id="error-modal-overlay"></div>
+        <div class="bg-white p-8 max-w-sm w-full z-10 rounded-lg shadow-2xl transform scale-95 transition-transform duration-300 mx-4 relative text-center">
+            <svg class="mx-auto mb-4 w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <h3 class="text-xl font-serif mb-2 text-gray-900">Login failed</h3>
+            <p id="error-modal-msg" class="text-gray-500 mb-6">Please check your email and password.</p>
+            <button id="error-modal-close" class="w-full bg-black text-white font-serif tracking-widest uppercase py-3 hover:bg-gold transition-colors rounded">
+                Erneut versuchen
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="footer-container"></div>
+
+    <!-- Firebase Auth logic -->
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAw_TmBCgvAwFPZkJ8RQ7_jSFB62KgQVqc",
+            authDomain: "selena-events-dashboard.firebaseapp.com",
+            projectId: "selena-events-dashboard",
+            storageBucket: "selena-events-dashboard.firebasestorage.app",
+            messagingSenderId: "535842804912",
+            appId: "1:535842804912:web:7464adf97bcdf456131775",
+            measurementId: "G-6CXF223NQE"
+        };
+        const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+        const auth = getAuth(app);
+
+        const errorModal = document.getElementById('error-modal');
+        const errorModalMsg = document.getElementById('error-modal-msg');
+        
+        document.getElementById('error-modal-close').addEventListener('click', () => {
+            errorModal.classList.add('hidden');
+        });
+        document.getElementById('error-modal-overlay').addEventListener('click', () => {
+            errorModal.classList.add('hidden');
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('login-btn');
+
+            try {
+                btn.disabled = true;
+                btn.textContent = 'Please wait...';
+
+                await signInWithEmailAndPassword(auth, email, password);
+                // Redirect to dashboard
+                window.location.href = 'customer-dashboard.html';
+            } catch (error) {
+                console.error("Login Error:", error);
+                
+                // Show Error Modal
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorModalMsg.textContent = 'The entered credentials are incorrect. Please check your email and password.';
+                } else {
+                    errorModalMsg.textContent = 'An unexpected error occurred: ' + error.message;
+                }
+                errorModal.classList.remove('hidden');
+                
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
+            }
+        });
+    </script>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

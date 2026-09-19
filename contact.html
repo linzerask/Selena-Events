@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | Selena Events</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="assets/logo_dark.png">
+</head>
+<body class="bg-gray-50 antialiased overflow-x-hidden">
+
+    <div id="header-container"></div>
+
+    <main class="pt-20">
+        <!-- Page Header -->
+        <section class="bg-white py-16 border-b border-gray-100 scroll-animate">
+            <div class="max-w-7xl mx-auto px-4 text-center">
+                <h1 class="text-4xl md:text-5xl mb-4 font-serif">Kontaktieren Sie uns</h1>
+                <p class="text-gray-500 font-light max-w-2xl mx-auto">Beginnen Sie die Reise zur Planung Ihres außergewöhnlichen Events. Wir freuen uns darauf, Ihre Geschichte zu hören.</p>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="section-padding max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col-reverse lg:flex-row gap-16 scroll-animate">
+                
+                <!-- Contact Info & Hours -->
+                <div class="lg:w-1/3">
+                    <h2 class="text-2xl font-serif mb-6 text-dark">Kontaktinformationen</h2>
+                    <p class="text-gray-500 font-light mb-8 leading-relaxed text-sm">Kontaktieren Sie uns, um eine Erstberatung zu vereinbaren oder weitere Informationen über unsere Dienstleistungen und unseren Verleih anzufordern.</p>
+                    
+                    <div class="space-y-6 mb-10">
+                        <div class="flex items-start">
+                            <span class="text-gold mr-4">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            </span>
+                            <div>
+                                <h3 class="text-sm font-semibold uppercase tracking-wider mb-1">Bürostandort</h3>
+                                <p class="text-gray-500 text-sm font-light">Riesterstraße 8, Tür 2<br>4050 Traun</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-gold mr-4">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            </span>
+                            <div>
+                                <h3 class="text-sm font-semibold uppercase tracking-wider mb-1">E-Mail</h3>
+                                <p class="text-gray-500 text-sm font-light"><a href="mailto:info@selena.events" class="hover:text-gold transition-colors">info@selena.events</a></p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-gold mr-4">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                            </span>
+                            <div>
+                                <h3 class="text-sm font-semibold uppercase tracking-wider mb-1">Telefon</h3>
+                                <p class="text-gray-500 text-sm font-light"><a href="tel:+436609688601" class="hover:text-gold transition-colors">+43 660 9688 601</a></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 class="text-2xl font-serif mb-6 text-dark">Öffnungszeiten</h2>
+                    <ul class="text-sm text-gray-500 font-light space-y-2">
+                        <li class="flex justify-between border-b border-gray-200 pb-2"><span>Montag - Freitag</span> <span>09:00 - 18:00</span></li>
+                        <li class="flex justify-between border-b border-gray-200 pb-2"><span>Samstag</span> <span>10:00 - 14:00</span></li>
+                        <li class="flex justify-between pb-2"><span>Sonntag</span> <span>Geschlossen</span></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Form -->
+                <div class="lg:w-2/3 bg-white p-8 md:p-12 shadow-sm">
+                    <h2 class="text-2xl font-serif mb-8 text-dark">Senden Sie uns eine Nachricht</h2>
+                    <form id="contact-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="first-name" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">Vorname</label>
+                                <input type="text" name="first-name" id="first-name" class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-gold transition-colors bg-transparent text-sm" placeholder="Max" required>
+                            </div>
+                            <div>
+                                <label for="last-name" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">Nachname</label>
+                                <input type="text" name="last-name" id="last-name" class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-gold transition-colors bg-transparent text-sm" placeholder="Mustermann" required>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">E-Mail-Adresse</label>
+                                <input type="email" name="email" id="email" class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-gold transition-colors bg-transparent text-sm" placeholder="max@beispiel.de" required>
+                            </div>
+                            <div>
+                                <label for="phone" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">Telefonnummer</label>
+                                <input type="tel" name="phone" id="phone" class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-gold transition-colors bg-transparent text-sm" placeholder="+43 660 9688 601" required>
+                            </div>
+                        </div>
+
+                        <div class="relative" id="event-type-wrapper">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">Veranstaltungsart</label>
+                                <input type="hidden" name="event-type" id="event-type" required>
+                                
+                                <button type="button" id="event-type-btn" class="w-full flex justify-between items-center border-b border-gray-300 py-2 focus:outline-none focus:border-gold transition-colors bg-transparent text-sm text-gray-700 font-medium cursor-pointer text-left">
+                                    <span id="event-type-display" class="text-gray-400">-- Bitte wählen --</span>
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                                
+                                <div id="event-type-menu" class="absolute z-50 w-full mt-1 bg-white border border-gray-100 rounded-lg shadow-xl opacity-0 invisible transform origin-top transition-all duration-200">
+                                    <ul class="py-1 text-sm text-gray-700">
+                                        <li><button type="button" class="w-full text-left px-4 py-2 hover:bg-gray-50 hover:text-gold transition-colors" data-value="wedding">Hochzeit</button></li>
+                                        <li><button type="button" class="w-full text-left px-4 py-2 hover:bg-gray-50 hover:text-gold transition-colors" data-value="corporate">Firmenveranstaltung</button></li>
+                                        <li><button type="button" class="w-full text-left px-4 py-2 hover:bg-gray-50 hover:text-gold transition-colors" data-value="birthday">Geburtstag / Privat</button></li>
+                                        <li><button type="button" class="w-full text-left px-4 py-2 hover:bg-gray-50 hover:text-gold transition-colors" data-value="rental">Nur Verleih</button></li>
+                                        <li><button type="button" class="w-full text-left px-4 py-2 hover:bg-gray-50 hover:text-gold transition-colors" data-value="other">Sonstiges</button></li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                        <div>
+                            <label for="message" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">Ihre Nachricht</label>
+                            <textarea id="message" name="message" rows="4" class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-gold transition-colors bg-transparent text-sm" placeholder="Erzählen Sie uns von Ihrer Vision..." required></textarea>
+                        </div>
+
+                        
+                        <!-- Invisible Anti-Spam Honeypots (Do not fill) -->
+                        <div class="hidden" style="display:none !important; visibility:hidden !important;" aria-hidden="true">
+                            <input type="text" name="company_website_url_val" id="company_website_url_val" tabindex="-1" autocomplete="off">
+                            <input type="text" name="b_contact_fax_num" id="b_contact_fax_num" tabindex="-1" autocomplete="off">
+                        </div>
+
+                        <div class="pt-4">
+                            <button type="submit" class="btn-gold w-full md:w-auto">Anfrage absenden</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Google Maps -->
+        <section class="h-96 w-full bg-gray-200 relative scroll-animate">
+            <iframe src="https://maps.google.com/maps?q=Riesterstrasse+8,+4050+Traun,+Austria&t=&z=15&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </section>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <script src="js/main.js"></script>
+    <script src="js/animations.js"></script>
+
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyAw_TmBCgvAwFPZkJ8RQ7_jSFB62KgQVqc",
+            authDomain: "selena-events-dashboard.firebaseapp.com",
+            projectId: "selena-events-dashboard",
+            storageBucket: "selena-events-dashboard.firebasestorage.app",
+            messagingSenderId: "535842804912",
+            appId: "1:535842804912:web:7464adf97bcdf456131775"
+        };
+        const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+        const db = getFirestore(app);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const formMountTime = Date.now();
+
+            // Custom Dropdown logic
+            function setupCustomDropdown(idPrefix, onChange) {
+                const btn = document.getElementById(`${idPrefix}-btn`);
+                const menu = document.getElementById(`${idPrefix}-menu`);
+                const display = document.getElementById(`${idPrefix}-display`);
+                const hiddenInput = document.getElementById(idPrefix);
+                
+                if(!btn || !menu) return;
+
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isHidden = menu.classList.contains('opacity-0');
+                    // close all others
+                    document.querySelectorAll('[id$="-menu"]').forEach(m => {
+                        m.classList.add('opacity-0', 'invisible');
+                    });
+                    if (isHidden) {
+                        menu.classList.remove('opacity-0', 'invisible');
+                    } else {
+                        menu.classList.add('opacity-0', 'invisible');
+                    }
+                });
+
+                menu.querySelectorAll('button').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        hiddenInput.value = item.getAttribute('data-value');
+                        display.innerText = item.innerText;
+                        display.classList.remove('text-gray-400');
+                        display.classList.add('text-gray-700');
+                        menu.classList.add('opacity-0', 'invisible');
+                        if(onChange) onChange(hiddenInput.value);
+                    });
+                });
+            }
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', () => {
+                document.querySelectorAll('[id$="-menu"]').forEach(m => {
+                    m.classList.add('opacity-0', 'invisible');
+                });
+            });
+
+            setupCustomDropdown('event-type');
+
+            function isGibberishClient(text) {
+                if (!text || typeof text !== 'string') return false;
+                const trimmed = text.trim();
+                if (trimmed.length > 15 && !trimmed.includes(' ')) {
+                    const upperCount = (trimmed.match(/[A-Z]/g) || []).length;
+                    const lowerCount = (trimmed.match(/[a-z]/g) || []).length;
+                    if (upperCount > 3 && lowerCount > 3) return true;
+                }
+                return false;
+            }
+
+            const form = document.getElementById('contact-form');
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const origBtnText = submitBtn ? submitBtn.innerText : '';
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerText = 'Wird gesendet...';
+                    }
+
+                    const hp1 = document.getElementById('company_website_url_val')?.value || '';
+                    const hp2 = document.getElementById('b_contact_fax_num')?.value || '';
+                    const elapsedMs = Date.now() - formMountTime;
+
+                    // Honeypot or ultra-fast bot check: silently fake success
+                    if (hp1 || hp2 || elapsedMs < 1800) {
+                        setTimeout(() => {
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerText = origBtnText;
+                            }
+                            document.getElementById('success-modal').classList.remove('hidden');
+                            form.reset();
+                        }, 600);
+                        return;
+                    }
+
+                    const fname = document.getElementById('first-name').value;
+                    const lname = document.getElementById('last-name').value;
+                    const email = document.getElementById('email').value;
+                    const phone = document.getElementById('phone').value;
+                    const type = document.getElementById('event-type').value;
+                    const message = document.getElementById('message').value;
+
+                    if (isGibberishClient(fname) || isGibberishClient(lname) || isGibberishClient(message)) {
+                        setTimeout(() => {
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerText = origBtnText;
+                            }
+                            document.getElementById('success-modal').classList.remove('hidden');
+                            form.reset();
+                        }, 600);
+                        return;
+                    }
+
+                    const payload = {
+                        firstName: fname,
+                        lastName: lname,
+                        email: email,
+                        phone: phone,
+                        eventType: type,
+                        message: message,
+                        elapsedMs: elapsedMs,
+                        company_website_url_val: hp1,
+                        b_contact_fax_num: hp2
+                    };
+
+                    try {
+                        let sent = false;
+                        try {
+                            const res = await fetch('https://us-central1-selena-events-dashboard.cloudfunctions.net/submitContactInquiry', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                            if (res.ok) {
+                                sent = true;
+                            }
+                        } catch(netErr) {
+                            console.warn("Gateway error, fallback to direct Firestore", netErr);
+                        }
+
+                        if (!sent) {
+                            await addDoc(collection(db, 'messages'), {
+                                firstName: fname,
+                                lastName: lname,
+                                email: email,
+                                phone: phone,
+                                eventType: type,
+                                message: message,
+                                status: 'Neu',
+                                submittedVia: 'direct_fallback',
+                                createdAt: serverTimestamp()
+                            });
+                        }
+
+                        document.getElementById('success-modal').classList.remove('hidden');
+                        form.reset();
+                        
+                        // Reset custom dropdown displays
+                        const displayEl = document.getElementById('event-type-display');
+                        if (displayEl) {
+                            displayEl.innerText = '-- Bitte wählen --';
+                            displayEl.classList.add('text-gray-400');
+                            displayEl.classList.remove('text-gray-700');
+                        }
+                        document.getElementById('event-type').value = '';
+                    } catch(error) {
+                        console.error('Error submitting inquiry: ', error);
+                        document.getElementById('error-modal').classList.remove('hidden');
+                        document.getElementById('error-modal-msg').innerText = 'Fehler beim Senden. Bitte versuchen Sie es später erneut.';
+                    } finally {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerText = origBtnText;
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="fixed inset-0 bg-black opacity-50 transition-opacity" onclick="document.getElementById('success-modal').classList.add('hidden')"></div>
+        <div class="bg-white p-8 max-w-sm w-full z-10 rounded-lg shadow-2xl transform transition-transform duration-300 mx-4 relative text-center">
+            <svg class="mx-auto mb-4 w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <h3 class="text-xl font-serif mb-2 text-gray-900">Erfolg!</h3>
+            <p class="text-gray-500 mb-6">Ihre Nachricht wurde erfolgreich gesendet.</p>
+            <button onclick="document.getElementById('success-modal').classList.add('hidden')" class="w-full bg-gold text-white font-serif tracking-widest uppercase py-3 hover:bg-black transition-colors rounded">
+                Schließen
+            </button>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="error-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="fixed inset-0 bg-black opacity-50 transition-opacity" onclick="document.getElementById('error-modal').classList.add('hidden')"></div>
+        <div class="bg-white p-8 max-w-sm w-full z-10 rounded-lg shadow-2xl transform transition-transform duration-300 mx-4 relative text-center">
+            <svg class="mx-auto mb-4 w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <h3 class="text-xl font-serif mb-2 text-gray-900">Fehler</h3>
+            <p id="error-modal-msg" class="text-gray-500 mb-6">Ein Fehler ist aufgetreten.</p>
+            <button onclick="document.getElementById('error-modal').classList.add('hidden')" class="w-full bg-black text-white font-serif tracking-widest uppercase py-3 hover:bg-gold transition-colors rounded">
+                Schließen
+            </button>
+        </div>
+    </div>
+
+</body>
+</html>

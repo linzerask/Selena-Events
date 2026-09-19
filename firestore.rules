@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function role() { return signedIn() ? get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role : null; }
+    function staff() { return role() in ['owner', 'dev']; }
+    function team() { return role() in ['owner', 'dev', 'volunteer']; }
+
+    match /user_roles/{uid} {
+      allow read: if staff() || (signedIn() && request.auth.uid == uid);
+      allow write: if role() == 'owner';
+    }
+    match /users/{uid} {
+      allow read: if staff() || (signedIn() && request.auth.uid == uid);
+      allow create: if signedIn() && request.auth.uid == uid;
+      allow update: if staff() || (signedIn() && request.auth.uid == uid);
+      allow delete: if staff();
+    }
+    match /custom_products/{id} {
+      allow read: if resource.data.visible == true || staff();
+      allow write: if staff();
+    }
+    match /custom_packages/{id} {
+      allow read: if resource.data.visibleInShop == true || staff();
+      allow write: if staff();
+    }
+    match /orders/{id} {
+      allow create: if true;
+      allow read: if staff();
+      allow read: if signedIn() && resource.data.customerUid == request.auth.uid;
+      allow update, delete: if staff();
+    }
+    match /booked_dates/{id} {
+      allow read, create: if true;
+      allow update, delete: if staff();
+    }
+    match /customer_mailboxes/{uid} {
+      allow read: if staff() || (signedIn() && request.auth.uid == uid);
+      allow write: if staff();
+      match /messages/{messageId} {
+        allow read: if staff() || (signedIn() && request.auth.uid == uid);
+        allow create, delete: if staff();
+        allow update: if staff() || (signedIn() && request.auth.uid == uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readByCustomer']));
+      }
+    }
+    match /stock_movements/{id} { allow read, write: if staff(); }
+    match /portfolio_events/{id} { allow read: if resource.data.visible == true || staff(); allow write: if staff(); }
+    match /team_members/{id} { allow read: if resource.data.visible == true || staff(); allow write: if staff(); }
+    match /cancellation_requests/{id} {
+      allow create: if signedIn() && request.resource.data.customerUid == request.auth.uid;
+      allow read: if staff() || (signedIn() && resource.data.customerUid == request.auth.uid);
+      allow update, delete: if staff();
+    }
+    match /settings/{id} { allow read: if id in ['site_images', 'media_overrides', 'featured_items'] || staff(); allow write: if staff(); }
+    match /contact_messages/{id} { allow create: if true; allow read, update, delete: if staff(); }
+    match /messages/{id} { allow create: if true; allow read, update, delete: if staff(); }
+    match /blog_posts/{postId} {
+      allow read: if true; allow write: if staff();
+      match /comments/{id} { allow read: if true; allow create: if signedIn(); allow write: if staff(); }
+    }
+    match /{document=**} { allow read, write: if team(); }
+  }
+}

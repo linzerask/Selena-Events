@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details | Selena Events</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="icon" type="image/png" href="../../assets/logo_dark.png">
+</head>
+<body class="bg-gray-50 antialiased overflow-x-hidden">
+
+    <div id="header-container"></div>
+
+    <main class="pt-24 pb-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <a href="../../en/verleih.html" class="inline-flex items-center text-gray-500 hover:text-gold mb-8 transition-colors font-medium">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Back to overview
+            </a>
+
+            <!-- Product Container (Glassmorphism) -->
+            <div id="product-container" class="glass-panel bg-white/85 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 overflow-hidden hidden flex-col md:flex-row transform transition-all fade-in">
+                
+                <!-- Image Column -->
+                <div class="w-full md:w-1/2 bg-gray-50 p-8 flex flex-col items-center justify-start relative border-b md:border-b-0 md:border-r border-gray-100">
+                    <img id="product-img" src="" alt="" class="w-full h-auto max-h-[60vh] object-contain mb-4">
+                    <div id="product-tags" class="absolute top-4 right-4 flex flex-col gap-2"></div>
+                </div>
+
+                <!-- Details Column -->
+                <div class="w-full md:w-1/2 p-8 md:p-12 flex flex-col">
+                    <h1 id="product-title" class="text-3xl md:text-4xl font-serif text-gray-900 mb-4"></h1>
+                    <div class="text-gold font-serif text-3xl font-medium mb-8"><span class="text-sm text-gray-500 uppercase tracking-widest mr-2">Price:</span><span id="product-price"></span></div>
+                    
+                    <div class="prose prose-sm md:prose-base text-gray-600 mb-10 flex-grow">
+                        <div id="product-long-desc" class="space-y-4"></div>
+                    </div>
+
+                    <div class="pt-8 border-t border-gray-100 mt-auto flex flex-col">
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <!-- cart and wishlist buttons -->
+<button id="add-to-cart-btn" class="btn-gold flex-1 justify-center text-center py-4 text-sm tracking-widest font-semibold rounded-lg shadow-md hover:shadow-lg transition-all">ADD TO CART</button>
+                        <button id="add-to-wishlist-btn" class="bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gold flex-1 justify-center text-center py-4 text-sm tracking-widest font-semibold rounded-lg transition-all">ADD TO WISHLIST</button>
+                        </div>
+                        <button id="share-product-btn" onclick="window.shareCurrentProduct()" type="button" class="w-full mt-3 border border-gray-200 hover:border-gold text-gray-700 hover:text-gold py-3 px-4 rounded-lg flex items-center justify-center gap-2 text-xs tracking-widest font-semibold uppercase transition-all bg-white hover:bg-gray-50 shadow-sm cursor-pointer">
+                            <svg class="w-4 h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                            <span id="share-btn-label">SHARE PRODUCT</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Error State -->
+            <div id="error-container" class="text-center py-20 hidden">
+                <h2 class="text-2xl font-serif text-gray-900 mb-4">Produkt nicht gefunden</h2>
+                <a href="../../en/verleih.html" class="btn-gold inline-flex px-8 py-3">Back to overview</a>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-container"></div>
+    
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center">
+        <div id="success-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
+        <div class="relative bg-white w-full max-w-md mx-4 rounded-2xl shadow-2xl p-8 text-center transform transition-all border-t-4 border-green-500">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h3 id="success-modal-title" class="text-2xl font-serif text-gray-900 mb-3">Erfolgreich</h3>
+            <p id="success-modal-msg" class="text-gray-500 text-base mb-8">Aktion erfolgreich ausgeführt.</p>
+            <button id="success-modal-close" class="btn-gold w-full justify-center text-center py-3 text-sm tracking-widest block font-medium" onclick="document.getElementById('success-modal').classList.add('hidden')">SCHLIESSEN</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/main.js"></script>
+    <script src="../js/product-inquiry.js"></script>
+    <script src="../js/animations.js"></script>
+    <script src="../js/verleih.js"></script>
+
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+                const firebaseConfig = {
+            apiKey: "AIzaSyAw_TmBCgvAwFPZkJ8RQ7_jSFB62KgQVqc",
+            authDomain: "selena-events-dashboard.firebaseapp.com",
+            projectId: "selena-events-dashboard",
+            storageBucket: "selena-events-dashboard.firebasestorage.app",
+            messagingSenderId: "535842804912",
+            appId: "1:535842804912:web:7464adf97bcdf456131775"
+        };
+
+        const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+        const auth = getAuth(app);
+        setPersistence(auth, browserLocalPersistence).catch(console.error);
+        const db = getFirestore(app);
+        
+        window.firebaseDb = db;
+        window.firebaseDoc = doc;
+        window.firebaseGetDoc = getDoc;
+        // ... handled implicitly by other scripts if they export/globalize.
+        // Actually shop.js / verleih.js handles auth check implicitly via window.currentUser
+        
+        function renderProductPage(product) {
+            window.currentLoadedProduct = product;
+            if (typeof products !== 'undefined' && !products.some(x => String(x.id) === String(product.id))) { products.push(product); }
+            document.getElementById('product-container').classList.remove('hidden');
+            document.getElementById('product-container').classList.add('flex');
+            
+            document.title = product.title + " | Selena Events";
+            document.getElementById('product-img').src = product.img.startsWith('http') ? product.img : '../' + product.img;
+            document.getElementById('product-img').alt = product.title;
+            document.getElementById('product-title').textContent = product.title;
+            
+            const isReq = product.priceMode === 'request' || product.priceMode === 'from' || String(product.price) === '0' || product.price === 'Auf Anfrage' || product.price === 'On Request' || product.price === 'La Cerere';
+            if (product.priceMode === 'from') {
+                document.getElementById('product-price').textContent = "from " + product.price + " €";
+            } else if (isReq) {
+                document.getElementById('product-price').textContent = "On Request";
+            } else {
+                document.getElementById('product-price').textContent = product.price + " €";
+            }
+            if (isReq) {
+                const cartBtn = document.getElementById('add-to-cart-btn');
+                if (cartBtn) {
+                    cartBtn.innerHTML = `<svg class="w-5 h-5 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> SEND INQUIRY`;
+                    cartBtn.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (typeof window.openProductInquiryModal === 'function') {
+                            window.openProductInquiryModal(product.id, 'verleih');
+                        }
+                    };
+                }
+            }
+            
+            // Render tags
+            const tagsContainer = document.getElementById('product-tags');
+            if (tagsContainer && product.tags && product.tags.length > 0) {
+                tagsContainer.innerHTML = product.tags.map(tag => {
+                    if (tag === 'Premium') {
+                        return '<div class="bg-gold text-white text-xs px-3 py-1 uppercase tracking-widest rounded shadow-sm">Premium</div>';
+                    } else if (tag !== 'Custom') {
+                        return `<div class="bg-gray-800 text-white text-xs px-3 py-1 uppercase tracking-widest rounded shadow-sm">${tag}</div>`;
+                    }
+                    return '';
+                }).join('');
+            } else if (tagsContainer) {
+                tagsContainer.innerHTML = '';
+            }
+
+            
+            // Content
+            document.getElementById('product-long-desc').innerHTML = product.longDesc || product.shortDesc;
+            
+            // Thumbnails
+            const thumbContainer = document.getElementById('product-thumbnails');
+            if (product.images && product.images.length > 0) {
+                thumbContainer.innerHTML = product.images.map((imgUrl, index) => {
+                    const isHttp = imgUrl.startsWith('http');
+                    const src = isHttp ? imgUrl : '../' + imgUrl;
+                    const borderClass = index === 0 ? 'border-gold' : 'border-transparent';
+                    return `<img src="${src}" class="w-20 h-20 object-cover cursor-pointer rounded border-2 ${borderClass} hover:border-gold transition-all" onclick="document.getElementById('product-img').src='${src}'; Array.from(this.parentElement.children).forEach(c => { c.classList.remove('border-gold'); c.classList.add('border-transparent'); }); this.classList.remove('border-transparent'); this.classList.add('border-gold');">`;
+                }).join('');
+            } else if (product.img) {
+                const isHttp = product.img.startsWith('http');
+                const src = isHttp ? product.img : '../' + product.img;
+                thumbContainer.innerHTML = `<img src="${src}" class="w-20 h-20 object-cover cursor-pointer rounded border-2 border-gold transition-all">`;
+            }
+            
+            // Actions
+            document.getElementById('add-to-cart-btn').addEventListener('click', () => {
+                if (typeof addToCart === 'function') {
+                    addToCart(product.id);
+                    const btn = document.getElementById('add-to-cart-btn');
+                    const originalText = btn.textContent;
+                    btn.textContent = "✓ ADDED";
+                    btn.classList.add('bg-green-500', 'border-green-500');
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.classList.remove('bg-green-500', 'border-green-500');
+                    }, 2000);
+                }
+            });
+            
+            document.getElementById('add-to-wishlist-btn').addEventListener('click', () => {
+                if (typeof addToWishlist === 'function') {
+                    addToWishlist(product.id);
+                }
+            });
+            
+            updateWishlistButtonUI();
+            
+            
+        }
+
+        (async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const rawId = urlParams.get('id');
+            
+            let product = null;
+            if (typeof products !== 'undefined' && rawId) {
+                const normalizedId = String(rawId).replace(/^(catalog_)?(shop|verleih)_/, '');
+                product = products.find(p => String(p.id) === String(rawId) || String(p.id) === normalizedId || ('catalog_shop_' + p.id) === rawId || ('catalog_verleih_' + p.id) === rawId); 
+            }
+            
+            if (product) {
+                renderProductPage(product);
+            } else if (rawId) {
+                                // Try fetching from Firebase custom_products or custom_packages
+                try {
+                    let docSnap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, "custom_products", rawId));
+                    if (!docSnap.exists()) {
+                        docSnap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, "custom_packages", rawId));
+                    }
+                    if (docSnap.exists()) {
+                        const prod = docSnap.data();
+                        
+                        let featuresHtml = '';
+                        if (prod.features && prod.features.length > 0) {
+                            featuresHtml = '<h3>Eigenschaften:</h3><ul class="list-disc pl-5 space-y-1">' + prod.features.map(f => '<li>' + f + '</li>').join('') + '</ul>';
+                        }
+                        if (prod.items && prod.items.length > 0) {
+                            featuresHtml += '<h3 class="font-bold text-gray-900 mt-4 mb-2">Beinhaltet:</h3><ul class="list-disc pl-5 space-y-1">' + prod.items.map(it => '<li>' + (it.title || it.name || it) + '</li>').join('') + '</ul>';
+                        }
+
+                        let itemImages = [];
+                        if (prod.images && Array.isArray(prod.images) && prod.images.length > 0) {
+                            itemImages = prod.images;
+                        } else if (prod.img) {
+                            itemImages = [prod.img];
+                        } else if (prod.items && prod.items.length > 0) {
+                            prod.items.forEach(it => {
+                                if (it.images && Array.isArray(it.images)) itemImages.push(...it.images);
+                                else if (it.img) itemImages.push(it.img);
+                            });
+                        }
+                        if (itemImages.length === 0) itemImages = ['../assets/logo_dark.png'];
+                        
+                        product = {
+                            id: docSnap.id,
+                            title: prod.title,
+                            img: itemImages[0],
+                            price: prod.price,
+                            priceMode: prod.priceMode || (prod.price == 0 ? 'request' : 'fixed'),
+                            shortDesc: prod.subtitle || prod.description || "",
+                            longDesc: '<h2>Beschreibung</h2><p>' + (prod.subtitle || prod.description || '') + '</p>' + featuresHtml,
+                            source: prod.items ? "package" : "custom",
+                            decorationService: !!prod.decorationService,
+                            images: itemImages,
+                            tags: Array.isArray(prod.tags) && prod.tags.length > 0 ? prod.tags : (prod.isPremium ? ["Custom", "Premium"] : (prod.items ? ["Premium", "Spezialpaket"] : ["Custom"])),
+                            transportEnabled: prod.transportEnabled || false,
+                            pricePerKm: prod.pricePerKm !== undefined ? Number(prod.pricePerKm) : 0.50,
+                            transportFlatFee: prod.transportFlatFee ? Number(prod.transportFlatFee) : 0,
+                            transportMode: prod.transportMode || (prod.transportEnabled ? 'distance' : 'none'),
+                            items: prod.items || null
+                        };
+                        
+                        // Push to global array so Add to Cart can find it
+                        if (typeof products !== 'undefined') {
+                            products.push(product);
+                        }
+                        
+                        renderProductPage(product);
+                    } else {
+                        document.getElementById('error-container').classList.remove('hidden');
+                    }
+                } catch(e) {
+                    console.error("Error fetching custom product/package:", e);
+                    document.getElementById('error-container').classList.remove('hidden');
+                }
+            } else {
+                document.getElementById('error-container').classList.remove('hidden');
+            }
+        })();
+    </script>
+
+    <script>
+    window.shareCurrentProduct = async function() {
+        const pageUrl = window.location.href;
+        const titleEl = document.getElementById('product-title');
+        const prodTitle = (titleEl && titleEl.textContent ? titleEl.textContent.trim() : document.title) + " | Selena Events";
+        
+        // Native Web Share API for mobile (WhatsApp, Instagram, etc.)
+        if (navigator.share) {
+            const shareData = {
+                title: prodTitle,
+                text: prodTitle,
+                url: pageUrl
+            };
+            
+            try {
+                // Check if canShare exists; if not or if it passes, share full data, else share just url
+                let dataToShare = shareData;
+                if (typeof navigator.canShare === 'function') {
+                    if (!navigator.canShare(shareData)) {
+                        dataToShare = { title: prodTitle, url: pageUrl };
+                    }
+                }
+                await navigator.share(dataToShare);
+                return; // Shared or share sheet opened successfully
+            } catch (err) {
+                // If user simply closed/cancelled the share sheet, do not copy or show error
+                if (err.name === 'AbortError') return;
+                console.warn('Native share error, falling back to clipboard:', err);
+            }
+        }
+        
+        // Desktop / Non-WebShare Fallback: Copy to Clipboard
+        let copied = false;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                await navigator.clipboard.writeText(pageUrl);
+                copied = true;
+            } catch (err) {
+                copied = false;
+            }
+        }
+        
+        if (!copied) {
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = pageUrl;
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                textArea.style.position = "fixed";
+                textArea.style.opacity = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                copied = document.execCommand('copy');
+                document.body.removeChild(textArea);
+            } catch (e) {
+                copied = false;
+            }
+        }
+        
+        if (copied) {
+            const label = document.getElementById('share-btn-label');
+            if (label) {
+                const orig = label.textContent;
+                label.textContent = "✓ LINK COPIED!";
+                label.parentElement.classList.add('border-gold', 'text-gold');
+                setTimeout(() => {
+                    label.textContent = orig;
+                    label.parentElement.classList.remove('border-gold', 'text-gold');
+                }, 2500);
+            }
+            if (window.showToast) window.showToast("✓ LINK COPIED!");
+        } else {
+            prompt("Copy link:", pageUrl);
+        }
+    };
+    </script>
+</body>
+</html>
