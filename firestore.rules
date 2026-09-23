@@ -53,8 +53,8 @@ service cloud.firestore {
       allow update, delete: if staff();
     }
     match /settings/{id} { allow read: if id in ['site_images', 'media_overrides', 'featured_items'] || staff(); allow write: if staff(); }
-    match /contact_messages/{id} { allow create: if true; allow read, update, delete: if staff(); }
-    match /messages/{id} { allow create: if true; allow read, update, delete: if staff(); }
+    match /contact_messages/{id} { allow read, update, delete: if staff(); allow create: if false; }
+    match /messages/{id} { allow read, update, delete: if staff(); allow create: if false; }
     match /blog_posts/{postId} {
       allow read: if true; allow write: if staff();
       match /comments/{id} { allow read: if true; allow create: if signedIn(); allow write: if staff(); }

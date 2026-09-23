@@ -1,11 +1,39 @@
 /**
  * Selena Events - Product Inquiry Modal ("Preis auf Anfrage")
- * Handles direct inquiries for custom and request-priced items.
+ * Handles direct inquiries for custom and request-priced items via Secure Cloud Function Gateway.
  */
 
 (function() {
+    let inquiryTurnstileWidgetId = null;
+
+    function ensureTurnstileLoaded() {
+        if (!document.querySelector('script[src*="turnstile"]')) {
+            const s = document.createElement('script');
+            s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+            s.async = true;
+            s.defer = true;
+            document.head.appendChild(s);
+        }
+    }
+
+    function initInquiryTurnstile() {
+        if (window.turnstile && document.getElementById('inquiry-turnstile-widget') && inquiryTurnstileWidgetId === null) {
+            try {
+                inquiryTurnstileWidgetId = window.turnstile.render('#inquiry-turnstile-widget', {
+                    sitekey: '1x00000000000000000000AA',
+                    theme: 'light',
+                    size: 'flexible'
+                });
+            } catch(e) {
+                console.warn('Inquiry Turnstile notice:', e);
+            }
+        }
+    }
+
     function injectInquiryModalHTML() {
         if (document.getElementById('product-inquiry-modal')) return;
+
+        ensureTurnstileLoaded();
 
         const isEn = window.location.pathname.includes('/en/');
         const isRo = window.location.pathname.includes('/ro/');
@@ -26,7 +54,8 @@
                 submitting: "Wird gesendet...",
                 successTitle: "Vielen Dank!",
                 successMsg: "Ihre Anfrage wurde erfolgreich übermittelt. Unser Team wird sich in Kürze mit einem individuellen Angebot bei Ihnen melden.",
-                closeBtn: "SCHLIEẞEN"
+                closeBtn: "SCHLIEẞEN",
+                errorMsg: "Ihre Anfrage konnte leider nicht übermittelt werden. Bitte versuchen Sie es erneut."
             },
             en: {
                 modalTitle: "Non-binding Product Inquiry",
@@ -43,7 +72,8 @@
                 submitting: "Submitting...",
                 successTitle: "Thank You!",
                 successMsg: "Your inquiry has been successfully sent. Our team will get back to you shortly with a customized offer.",
-                closeBtn: "CLOSE"
+                closeBtn: "CLOSE",
+                errorMsg: "Your inquiry could not be submitted. Please try again later."
             },
             ro: {
                 modalTitle: "Cerere de ofertă personalizată",
@@ -60,7 +90,8 @@
                 submitting: "Se trimite...",
                 successTitle: "Vă mulțumim!",
                 successMsg: "Cererea dumneavoastră a fost transmisă cu succes. Echipa noastră vă va contacta în cel mai scurt timp cu o ofertă dedicată.",
-                closeBtn: "ÎNCHIDE"
+                closeBtn: "ÎNCHIDE",
+                errorMsg: "Cererea dumneavoastră nu a putut fi trimisă. Vă rugăm să încercați din nou."
             }
         };
 
@@ -94,6 +125,12 @@
                     <form id="product-inquiry-form" class="space-y-4">
                         <input type="hidden" id="inquiry-prod-id" value="">
                         
+                        <!-- Invisible Anti-Spam Honeypots (Off-screen) -->
+                        <div style="position: absolute; left: -9999px; top: -9999px; width: 1px; height: 1px; overflow: hidden;" aria-hidden="true">
+                            <input type="text" id="inquiry-user-title" name="contact_user_title" tabindex="-1" autocomplete="new-password">
+                            <input type="text" id="inquiry-company-url" name="company_website_url_val" tabindex="-1" autocomplete="new-password">
+                        </div>
+
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-medium text-gray-700">${t.name} *</label>
@@ -125,6 +162,9 @@
                             <label class="block text-xs font-medium text-gray-700">${t.message}</label>
                             <textarea id="inquiry-message" rows="3" placeholder="${t.messagePlaceholder}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold focus:ring-gold text-sm px-3 py-2 border bg-white"></textarea>
                         </div>
+
+                        <!-- Cloudflare Turnstile Container -->
+                        <div id="inquiry-turnstile-widget" class="my-2"></div>
 
                         <button type="submit" id="inquiry-submit-btn" class="btn-gold w-full justify-center text-center py-3.5 text-sm tracking-widest font-semibold flex items-center gap-2 mt-4 shadow-md">
                             <span>${t.submitBtn}</span>
@@ -168,9 +208,26 @@
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const submitBtn = document.getElementById('inquiry-submit-btn');
-                const origText = submitBtn.innerHTML;
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = `<span>${t.submitting}</span>`;
+                const origText = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = `<span>${t.submitting}</span>`;
+                }
+
+                const hpTitle = document.getElementById('inquiry-user-title')?.value || '';
+                const hpUrl = document.getElementById('inquiry-company-url')?.value || '';
+
+                // Honeypot check
+                if (hpTitle || hpUrl) {
+                    document.getElementById('inquiry-form-container').classList.add('hidden');
+                    document.getElementById('inquiry-success-container').classList.remove('hidden');
+                    form.reset();
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = origText;
+                    }
+                    return;
+                }
 
                 const prodId = document.getElementById('inquiry-prod-id').value;
                 const prodTitle = document.getElementById('inquiry-prod-title').textContent;
@@ -183,7 +240,15 @@
                 const eventLocation = document.getElementById('inquiry-location').value.trim();
                 const message = document.getElementById('inquiry-message').value.trim();
 
-                const inquiryData = {
+                let turnstileToken = '';
+                if (window.turnstile && inquiryTurnstileWidgetId !== null) {
+                    turnstileToken = window.turnstile.getResponse(inquiryTurnstileWidgetId);
+                }
+                if (!turnstileToken && window.turnstile) {
+                    turnstileToken = window.turnstile.getResponse();
+                }
+
+                const inquiryPayload = {
                     type: 'product_inquiry',
                     productId: prodId,
                     productTitle: prodTitle,
@@ -195,30 +260,47 @@
                     customerEmail: email,
                     phone: phone,
                     customerPhone: phone,
+                    date: eventDate,
                     eventDate: eventDate,
+                    location: eventLocation,
                     eventLocation: eventLocation,
                     address: eventLocation,
                     message: message,
                     subject: `Produkt-Anfrage: ${prodTitle}`,
-                    status: 'Neu',
-                    createdAt: window.firebaseServerTimestamp ? window.firebaseServerTimestamp() : new Date()
+                    contact_user_title: hpTitle,
+                    company_website_url_val: hpUrl,
+                    turnstileToken: turnstileToken || '1x00000000000000000000AA'
                 };
 
                 try {
-                    if (window.firebaseDb && window.firebaseAddDoc && window.firebaseCollection) {
-                        await window.firebaseAddDoc(window.firebaseCollection(window.firebaseDb, "messages"), inquiryData);
-                    } else {
-                        console.warn("Firestore not available globally, attempting fallback or console log");
+                    const res = await fetch('https://us-central1-selena-events-dashboard.cloudfunctions.net/submitContactInquiry', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(inquiryPayload)
+                    });
+
+                    const resData = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        throw new Error(resData.error || t.errorMsg);
                     }
 
                     document.getElementById('inquiry-form-container').classList.add('hidden');
                     document.getElementById('inquiry-success-container').classList.remove('hidden');
+                    form.reset();
+                    if (window.turnstile && inquiryTurnstileWidgetId !== null) {
+                        window.turnstile.reset(inquiryTurnstileWidgetId);
+                    }
                 } catch (err) {
                     console.error("Error submitting product inquiry:", err);
-                    alert("Ihre Anfrage konnte leider nicht übermittelt werden. Bitte versuchen Sie es erneut.");
+                    alert(err.message || t.errorMsg);
+                    if (window.turnstile && inquiryTurnstileWidgetId !== null) {
+                        window.turnstile.reset(inquiryTurnstileWidgetId);
+                    }
                 } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = origText;
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = origText;
+                    }
                 }
             });
         }
@@ -273,6 +355,13 @@
             if (nameInput && !nameInput.value && window.currentUserProfileData.name) {
                 nameInput.value = window.currentUserProfileData.name;
             }
+        }
+
+        // Initialize turnstile if ready
+        if (window.turnstile) {
+            setTimeout(initInquiryTurnstile, 150);
+        } else {
+            window.addEventListener('load', () => setTimeout(initInquiryTurnstile, 600));
         }
 
         if (modal) {

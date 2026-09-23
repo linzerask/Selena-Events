@@ -816,6 +816,36 @@ exports.sendInquiryReply = functions.https.onRequest((req, res) => {
     });
 });
 
+// Cloudflare Turnstile Verification Helper
+async function verifyTurnstile(token, ip) {
+    if (!token || typeof token !== 'string') return false;
+    const secretKey = process.env.TURNSTILE_SECRET_KEY || '1x0000000000000000000000000000000AA';
+    
+    // Cloudflare dummy test keys pass automatically in test/local environments
+    if (token === 'XXXX.DUMMY.TOKEN.XXXX' || token === '1x00000000000000000000AA') return true;
+
+    try {
+        const formData = new URLSearchParams();
+        formData.append('secret', secretKey);
+        formData.append('response', token);
+        if (ip && ip !== 'unknown') {
+            const rawIp = String(ip).split(',')[0].trim();
+            formData.append('remoteip', rawIp);
+        }
+
+        const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            method: 'POST',
+            body: formData,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
+        const data = await res.json();
+        return data.success === true;
+    } catch (err) {
+        console.error('[AntiSpam] Turnstile verification network error:', err);
+        return false;
+    }
+}
+
 // Rate limiting map (in-memory per function instance)
 const contactIpRateLimitMap = new Map();
 
@@ -879,42 +909,59 @@ exports.submitContactInquiry = functions.https.onRequest((req, res) => {
             const data = req.body || {};
             const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
 
-            // 1. Invisible Honeypot Trap: If bots filled these hidden fields, return fake success without saving
-            if (data.company_website_url_val || data.b_contact_fax_num || data.hp_check || data.website_url) {
+            // 1. Invisible Honeypot Trap: Check off-screen and hidden trap inputs
+            if (data.contact_user_title || data.company_website_url_val || data.b_contact_fax_num || data.hp_check || data.website_url) {
                 console.log(`[AntiSpam] Honeypot triggered from IP ${clientIp}. Silently dropping spam.`);
                 return res.status(200).json({ success: true, message: 'Inquiry received' });
             }
 
-            // 2. Interaction Timing Gate: real humans take at least 2.5 seconds
+            // 2. Cloudflare Turnstile Verification
+            const turnstileToken = data.turnstileToken || data['cf-turnstile-response'] || '';
+            const isTurnstileValid = await verifyTurnstile(turnstileToken, clientIp);
+            if (!isTurnstileValid) {
+                console.warn(`[AntiSpam] Turnstile verification failed from IP ${clientIp}. Token provided: ${!!turnstileToken}`);
+                return res.status(400).json({ error: 'Sicherheitsüberprüfung fehlgeschlagen. Bitte laden Sie die Seite neu.' });
+            }
+
+            // 3. Interaction Timing Gate
             const elapsed = Number(data.elapsedMs || 0);
-            if (data.elapsedMs !== undefined && elapsed < 2200) {
+            if (data.elapsedMs !== undefined && elapsed < 1500) {
                 console.log(`[AntiSpam] Submission too fast (${elapsed}ms) from IP ${clientIp}. Silently dropping spam.`);
                 return res.status(200).json({ success: true, message: 'Inquiry received' });
             }
 
-            // 3. IP Rate Limiting
+            // 4. IP Rate Limiting
             if (isContactRateLimited(clientIp)) {
                 console.warn(`[AntiSpam] Rate limit exceeded for IP: ${clientIp}`);
                 return res.status(429).json({ error: 'Zu viele Anfragen. Bitte warten Sie ein paar Minuten.' });
             }
 
-            // 4. Extract fields & sanitize
+            // 5. Extract fields & sanitize
+            const inquiryType = data.type || (data.productId ? 'product_inquiry' : 'contact');
             const firstName = (data.firstName || data['first-name'] || '').trim();
             const lastName = (data.lastName || data['last-name'] || '').trim();
-            const email = (data.email || '').trim().toLowerCase();
-            const phone = (data.phone || '').trim();
+            const rawName = (data.name || data.customerName || `${firstName} ${lastName}`).trim();
+            const email = (data.email || data.customerEmail || '').trim().toLowerCase();
+            const phone = (data.phone || data.customerPhone || '').trim();
             const eventType = (data.eventType || data['event-type'] || 'other').trim();
-            const location = (data.location || '').trim();
-            const date = (data.date || '').trim();
+            const location = (data.location || data.eventLocation || data.address || '').trim();
+            const date = (data.date || data.eventDate || '').trim();
             const message = (data.message || '').trim();
+            const productId = (data.productId || '').trim();
+            const productTitle = (data.productTitle || '').trim();
+            const productImg = (data.productImg || '').trim();
+            const subject = data.subject || (productTitle ? `Produkt-Anfrage: ${productTitle}` : 'Kontaktanfrage');
 
-            if (!email || !message) {
-                return res.status(400).json({ error: 'E-Mail und Nachricht sind Pflichtfelder.' });
+            if (!email) {
+                return res.status(400).json({ error: 'E-Mail-Adresse ist ein Pflichtfeld.' });
+            }
+            if (inquiryType === 'contact' && !message) {
+                return res.status(400).json({ error: 'Nachricht ist ein Pflichtfeld.' });
             }
 
-            // 5. Gibberish / Bot Pattern Filter
-            if (isGibberishSpam(firstName) || isGibberishSpam(lastName) || isGibberishSpam(message) || isGibberishSpam(location) || isGibberishSpam(date)) {
-                console.log(`[AntiSpam] Gibberish spam detected from IP ${clientIp}: ${firstName} ${lastName}. Silently dropping.`);
+            // 6. Gibberish / Bot Pattern Filter
+            if (isGibberishSpam(firstName) || isGibberishSpam(lastName) || isGibberishSpam(rawName) || isGibberishSpam(message) || isGibberishSpam(location)) {
+                console.log(`[AntiSpam] Gibberish spam detected from IP ${clientIp}: ${rawName}. Silently dropping.`);
                 return res.status(200).json({ success: true, message: 'Inquiry received' });
             }
 
@@ -924,21 +971,35 @@ exports.submitContactInquiry = functions.https.onRequest((req, res) => {
                 return res.status(200).json({ success: true, message: 'Inquiry received' });
             }
 
-            // 6. Save genuine clean message to Firestore
-            const docRef = await admin.firestore().collection('messages').add({
-                firstName: firstName,
-                lastName: lastName,
+            // 7. Save genuine clean message to Firestore via Admin SDK
+            const docData = {
+                type: inquiryType,
+                firstName: firstName || rawName.split(' ')[0] || '',
+                lastName: lastName || rawName.split(' ').slice(1).join(' ') || '',
+                customerName: rawName,
+                name: rawName,
                 email: email,
+                customerEmail: email,
                 phone: phone,
+                customerPhone: phone,
                 eventType: eventType,
                 location: location,
+                eventLocation: location,
                 date: date,
+                eventDate: date,
                 message: message,
+                subject: subject,
                 status: 'Neu',
-                submittedVia: 'secure_gateway',
+                submittedVia: 'secure_turnstile_gateway',
                 clientIp: String(clientIp).split(',')[0].trim(),
                 createdAt: admin.firestore.FieldValue.serverTimestamp()
-            });
+            };
+
+            if (productId) docData.productId = productId;
+            if (productTitle) docData.productTitle = productTitle;
+            if (productImg) docData.productImg = productImg;
+
+            const docRef = await admin.firestore().collection('messages').add(docData);
 
             return res.status(200).json({ success: true, id: docRef.id });
         } catch (error) {

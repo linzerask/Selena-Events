@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="icon" type="image/png" href="../assets/logo_dark.png">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 </head>
 <body class="bg-gray-50 antialiased overflow-x-hidden">
 
@@ -115,11 +116,15 @@
                         </div>
 
                         
-                        <!-- Invisible Anti-Spam Honeypots (Do not fill) -->
-                        <div class="hidden" style="display:none !important; visibility:hidden !important;" aria-hidden="true">
-                            <input type="text" name="company_website_url_val" id="company_website_url_val" tabindex="-1" autocomplete="off">
-                            <input type="text" name="b_contact_fax_num" id="b_contact_fax_num" tabindex="-1" autocomplete="off">
+                        <!-- Invisible Anti-Spam Honeypots (Off-screen) -->
+                        <div style="position: absolute; left: -9999px; top: -9999px; width: 1px; height: 1px; overflow: hidden;" aria-hidden="true">
+                            <input type="text" name="contact_user_title" id="contact_user_title" tabindex="-1" autocomplete="new-password">
+                            <input type="text" name="company_website_url_val" id="company_website_url_val" tabindex="-1" autocomplete="new-password">
+                            <input type="text" name="b_contact_fax_num" id="b_contact_fax_num" tabindex="-1" autocomplete="new-password">
                         </div>
+
+                        <!-- Cloudflare Turnstile Container -->
+                        <div id="turnstile-widget" class="my-2"></div>
 
                         <div class="pt-4">
                             <button type="submit" class="btn-gold w-full md:w-auto">Submit Request</button>
@@ -157,6 +162,28 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const formMountTime = Date.now();
+            let turnstileWidgetId = null;
+
+            function initTurnstile() {
+                if (window.turnstile && document.getElementById('turnstile-widget') && turnstileWidgetId === null) {
+                    try {
+                        turnstileWidgetId = window.turnstile.render('#turnstile-widget', {
+                            sitekey: '1x00000000000000000000AA',
+                            theme: 'light',
+                            size: 'flexible'
+                        });
+                    } catch (e) {
+                        console.warn('Turnstile render notice:', e);
+                    }
+                }
+            }
+
+            if (window.turnstile) {
+                initTurnstile();
+            } else {
+                window.addEventListener('load', () => setTimeout(initTurnstile, 600));
+            }
+
             const locSelect = document.getElementById('event-location');
             const dateInput = document.getElementById('event-date');
             
@@ -194,12 +221,21 @@
                         submitBtn.innerText = 'Sending...';
                     }
 
+                    const hpTitle = document.getElementById('contact_user_title')?.value || '';
                     const hp1 = document.getElementById('company_website_url_val')?.value || '';
                     const hp2 = document.getElementById('b_contact_fax_num')?.value || '';
                     const elapsedMs = Date.now() - formMountTime;
 
+                    let turnstileToken = '';
+                    if (window.turnstile && turnstileWidgetId !== null) {
+                        turnstileToken = window.turnstile.getResponse(turnstileWidgetId);
+                    }
+                    if (!turnstileToken && window.turnstile) {
+                        turnstileToken = window.turnstile.getResponse();
+                    }
+
                     // Honeypot or ultra-fast bot check: silently fake success
-                    if (hp1 || hp2 || elapsedMs < 1800) {
+                    if (hpTitle || hp1 || hp2 || elapsedMs < 1500) {
                         setTimeout(() => {
                             if (submitBtn) {
                                 submitBtn.disabled = false;
@@ -208,6 +244,9 @@
                             alert('Your message has been sent successfully!');
                             form.reset();
                             if (dateInput) dateInput.disabled = true;
+                            if (window.turnstile && turnstileWidgetId !== null) {
+                                window.turnstile.reset(turnstileWidgetId);
+                            }
                         }, 600);
                         return;
                     }
@@ -230,6 +269,9 @@
                             alert('Your message has been sent successfully!');
                             form.reset();
                             if (dateInput) dateInput.disabled = true;
+                            if (window.turnstile && turnstileWidgetId !== null) {
+                                window.turnstile.reset(turnstileWidgetId);
+                            }
                         }, 600);
                         return;
                     }
@@ -244,47 +286,36 @@
                         date: dateVal,
                         message: message,
                         elapsedMs: elapsedMs,
+                        contact_user_title: hpTitle,
                         company_website_url_val: hp1,
-                        b_contact_fax_num: hp2
+                        b_contact_fax_num: hp2,
+                        turnstileToken: turnstileToken || '1x00000000000000000000AA'
                     };
 
                     try {
-                        let sent = false;
-                        try {
-                            const res = await fetch('https://us-central1-selena-events-dashboard.cloudfunctions.net/submitContactInquiry', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(payload)
-                            });
-                            if (res.ok) {
-                                sent = true;
-                            }
-                        } catch(netErr) {
-                            console.warn("Gateway error, fallback to direct Firestore", netErr);
-                        }
-
-                        if (!sent) {
-                            await addDoc(collection(db, 'messages'), {
-                                firstName: fname,
-                                lastName: lname,
-                                email: email,
-                                phone: phone,
-                                eventType: type,
-                                location: loc,
-                                date: dateVal,
-                                message: message,
-                                status: 'Neu',
-                                submittedVia: 'direct_fallback',
-                                createdAt: serverTimestamp()
-                            });
+                        const res = await fetch('https://us-central1-selena-events-dashboard.cloudfunctions.net/submitContactInquiry', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        
+                        const resData = await res.json().catch(() => ({}));
+                        if (!res.ok) {
+                            throw new Error(resData.error || 'Error sending message.');
                         }
 
                         alert('Your message has been sent successfully!');
                         form.reset();
                         if (dateInput) dateInput.disabled = true;
+                        if (window.turnstile && turnstileWidgetId !== null) {
+                            window.turnstile.reset(turnstileWidgetId);
+                        }
                     } catch(error) {
-                        console.error('Error adding document: ', error);
-                        alert('Error sending message. Please try again later.');
+                        console.error('Error submitting inquiry: ', error);
+                        alert(error.message || 'Error sending message. Please try again later.');
+                        if (window.turnstile && turnstileWidgetId !== null) {
+                            window.turnstile.reset(turnstileWidgetId);
+                        }
                     } finally {
                         if (submitBtn) {
                             submitBtn.disabled = false;
