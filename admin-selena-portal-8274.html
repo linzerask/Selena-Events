@@ -766,7 +766,17 @@
                         <h2 class="text-2xl font-serif text-gray-900">Nachrichten & Kontaktanfragen</h2>
                         <p class="text-xs text-gray-500 mt-0.5" id="messages-filter-count">Lade Nachrichten...</p>
                     </div>
-                    <button onclick="window.markAllMessagesAsRead()" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">Alle als Angesehen markieren</button>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700 bg-white border border-gray-200 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors select-none shadow-sm">
+                            <input type="checkbox" id="select-all-messages" onchange="window.onSelectAllMessagesChange(this)" class="rounded border-gray-300 text-gold focus:ring-gold h-4 w-4 cursor-pointer">
+                            <span>Alle auswählen</span>
+                        </label>
+                        <button id="btn-bulk-delete-messages" onclick="window.bulkDeleteMessages()" class="hidden text-xs bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3.5 rounded-lg transition-all flex items-center gap-1.5 shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <span>Ausgewählte löschen (<span id="bulk-selected-count">0</span>)</span>
+                        </button>
+                        <button onclick="window.markAllMessagesAsRead()" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">Alle als Angesehen markieren</button>
+                    </div>
                 </div>
 
                 <!-- Filter & Search Toolbar (Nachrichten) -->
@@ -1034,7 +1044,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, query, onSnapshot, updateDoc, deleteDoc, doc, collectionGroup, orderBy, addDoc, serverTimestamp, getDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, query, onSnapshot, updateDoc, deleteDoc, doc, collectionGroup, orderBy, addDoc, serverTimestamp, getDoc, setDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
@@ -1068,6 +1078,7 @@
         window.firebaseAddDoc = addDoc;
         window.firebaseDeleteDoc = deleteDoc;
         window.firebaseUpdateDoc = updateDoc;
+        window.firebaseWriteBatch = writeBatch;
         window.firebaseServerTimestamp = serverTimestamp;
         window.firebaseRef = ref;
         window.firebaseUploadBytes = uploadBytes;
@@ -1083,10 +1094,54 @@
         const logoutBtn = document.getElementById('logout-btn');
 
         
-        window.deleteMessage = function(id) {
-            showCustomConfirm('Nachricht löschen', 'Möchten Sie diese Nachricht wirklich dauerhaft löschen?', async () => {
-                await deleteDoc(doc(db, 'messages', id));
+        window.deleteMessage = function(id, onDeletedCallback) {
+            if (!id) return;
+            showCustomConfirm('Nachricht löschen', 'Möchtest du diese Nachricht unwiderruflich löschen?', async () => {
+                try {
+                    // Optimistic UI Animation
+                    const cards = document.querySelectorAll(`[data-message-card-id="${id}"]`);
+                    cards.forEach(card => {
+                        card.style.transition = 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+                        card.style.opacity = '0';
+                        card.style.transform = 'scale(0.95)';
+                        card.style.maxHeight = '0px';
+                        card.style.padding = '0px';
+                        card.style.margin = '0px';
+                        card.style.overflow = 'hidden';
+                    });
+
+                    await deleteDoc(doc(db, 'messages', id));
+
+                    if (window.allMessages) {
+                        window.allMessages = window.allMessages.filter(m => m.id !== id);
+                    }
+                    if (window.openedMessages) {
+                        window.openedMessages.delete(id);
+                    }
+
+                    setTimeout(() => {
+                        if (window.renderFilteredMessages) window.renderFilteredMessages();
+                        if (window.updateBulkDeleteButton) window.updateBulkDeleteButton();
+                        if (window.updateNotificationBadges) window.updateNotificationBadges();
+                    }, 350);
+
+                    if (typeof onDeletedCallback === 'function') onDeletedCallback();
+                    if (window.showCustomAlert) window.showCustomAlert('Gelöscht', 'Die Nachricht wurde erfolgreich gelöscht.');
+                } catch(err) {
+                    console.error('Error deleting message:', err);
+                    if (window.renderFilteredMessages) window.renderFilteredMessages();
+                    alert('Fehler beim Löschen der Nachricht: ' + (err.message || err));
+                }
             });
+        };
+
+        window.deleteMessageFromReplyModal = function() {
+            const msgId = document.getElementById('reply-message-id')?.value;
+            if (msgId) {
+                window.deleteMessage(msgId, () => {
+                    if (window.closeReplyModal) window.closeReplyModal();
+                });
+            }
         };
 
         // === COMMENTS MODERATION LOGIC ===
@@ -1466,12 +1521,18 @@
                     <textarea id="reply-content-input" rows="5" required placeholder="Guten Tag, vielen Dank für Ihre Anfrage..." class="w-full rounded-xl border-gray-300 shadow-sm focus:border-gold focus:ring-gold text-sm p-3.5"></textarea>
                 </div>
                 
-                <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" id="cancel-reply-btn" class="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">Abbrechen</button>
-                    <button type="submit" id="send-reply-submit-btn" class="px-5 py-2 bg-gold hover:bg-yellow-600 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors flex items-center gap-2">
-                        <span>Antwort senden</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                <div class="flex items-center justify-between gap-3 pt-2 border-t border-gray-100">
+                    <button type="button" onclick="window.deleteMessageFromReplyModal()" class="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        <span>Nachricht löschen</span>
                     </button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="cancel-reply-btn" class="px-4 py-2 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">Abbrechen</button>
+                        <button type="submit" id="send-reply-submit-btn" class="px-5 py-2 bg-gold hover:bg-yellow-600 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center gap-2">
+                            <span>Antwort senden</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>

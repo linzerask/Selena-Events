@@ -2726,6 +2726,113 @@ window.markAllMessagesAsRead = async function() {
     }
 };
 
+window.onMessageCheckboxChange = function() {
+    if (window.updateBulkDeleteButton) window.updateBulkDeleteButton();
+};
+
+window.onSelectAllMessagesChange = function(masterCheckbox) {
+    const isChecked = masterCheckbox ? masterCheckbox.checked : false;
+    const checkboxes = document.querySelectorAll('.message-select-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = isChecked;
+    });
+    if (window.updateBulkDeleteButton) window.updateBulkDeleteButton();
+};
+
+window.updateBulkDeleteButton = function() {
+    const checkboxes = Array.from(document.querySelectorAll('.message-select-checkbox'));
+    const checked = checkboxes.filter(cb => cb.checked);
+    const bulkBtn = document.getElementById('btn-bulk-delete-messages');
+    const countSpan = document.getElementById('bulk-selected-count');
+    const masterCb = document.getElementById('select-all-messages');
+
+    if (countSpan) countSpan.textContent = checked.length;
+
+    if (bulkBtn) {
+        if (checked.length > 0) {
+            bulkBtn.classList.remove('hidden');
+        } else {
+            bulkBtn.classList.add('hidden');
+        }
+    }
+
+    if (masterCb) {
+        if (checkboxes.length === 0) {
+            masterCb.checked = false;
+            masterCb.indeterminate = false;
+        } else {
+            masterCb.checked = checked.length === checkboxes.length;
+            masterCb.indeterminate = checked.length > 0 && checked.length < checkboxes.length;
+        }
+    }
+};
+
+window.bulkDeleteMessages = function() {
+    const checkboxes = Array.from(document.querySelectorAll('.message-select-checkbox:checked'));
+    const selectedIds = checkboxes.map(cb => cb.dataset.id).filter(Boolean);
+    if (selectedIds.length === 0) return;
+
+    const confirmMsg = `Möchten Sie wirklich ${selectedIds.length} ausgewählte Nachricht(en) unwiderruflich löschen?`;
+    const confirmFn = window.showCustomConfirm || ((title, msg, cb) => { if (confirm(msg)) cb(); });
+
+    confirmFn('Ausgewählte löschen', confirmMsg, async () => {
+        try {
+            // 1. Optimistic fade-out animation on all selected cards
+            selectedIds.forEach(id => {
+                const cards = document.querySelectorAll(`[data-message-card-id="${id}"]`);
+                cards.forEach(card => {
+                    card.style.transition = 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.95)';
+                    card.style.maxHeight = '0px';
+                    card.style.paddingTop = '0px';
+                    card.style.paddingBottom = '0px';
+                    card.style.marginTop = '0px';
+                    card.style.marginBottom = '0px';
+                    card.style.overflow = 'hidden';
+                });
+            });
+
+            // 2. Batch delete in chunks of 450 (Firestore limit 500)
+            if (window.db && window.firebaseWriteBatch && window.firebaseDoc) {
+                const chunkSize = 450;
+                for (let i = 0; i < selectedIds.length; i += chunkSize) {
+                    const chunk = selectedIds.slice(i, i + chunkSize);
+                    const batch = window.firebaseWriteBatch(window.db);
+                    chunk.forEach(id => {
+                        batch.delete(window.firebaseDoc(window.db, 'messages', id));
+                    });
+                    await batch.commit();
+                }
+            } else if (window.db && window.firebaseDeleteDoc && window.firebaseDoc) {
+                await Promise.all(selectedIds.map(id => window.firebaseDeleteDoc(window.firebaseDoc(window.db, 'messages', id))));
+            }
+
+            // 3. Update local in-memory lists
+            if (window.allMessages) {
+                window.allMessages = window.allMessages.filter(m => !selectedIds.includes(m.id));
+            }
+            if (window.openedMessages) {
+                selectedIds.forEach(id => window.openedMessages.delete(id));
+            }
+
+            setTimeout(() => {
+                if (window.renderFilteredMessages) window.renderFilteredMessages();
+                if (window.updateBulkDeleteButton) window.updateBulkDeleteButton();
+                if (window.updateNotificationBadges) window.updateNotificationBadges();
+            }, 350);
+
+            if (window.showCustomAlert) {
+                window.showCustomAlert('Gelöscht', `${selectedIds.length} Nachricht(en) wurden erfolgreich gelöscht.`);
+            }
+        } catch(err) {
+            console.error('Error during bulk delete:', err);
+            if (window.renderFilteredMessages) window.renderFilteredMessages();
+            alert('Fehler beim Löschen der Nachrichten: ' + (err.message || err));
+        }
+    });
+};
+
 window.renderFilteredMessages = function() {
     if (!window.allMessages) return;
     const container = document.getElementById('messages-list');
@@ -2836,6 +2943,7 @@ window.renderFilteredMessages = function() {
                 </button>
             </div>
         `;
+        if (window.updateBulkDeleteButton) window.updateBulkDeleteButton();
         return;
     }
 
@@ -2874,20 +2982,28 @@ window.renderFilteredMessages = function() {
         const isHidden = window.openedMessages.has(data.id) ? '' : 'hidden';
 
         return `
-            <div class="border border-gray-200 rounded-xl hover:shadow-md transition-shadow bg-white cursor-pointer overflow-hidden">
+            <div data-message-card-id="${data.id}" class="border border-gray-200 rounded-xl hover:shadow-md transition-all bg-white cursor-pointer overflow-hidden">
                 <div class="p-4" onclick="if(window.openedMessages.has('${data.id}')){window.openedMessages.delete('${data.id}')}else{window.openedMessages.add('${data.id}')}; this.nextElementSibling.classList.toggle('hidden'); if(window.markMessageAsRead) window.markMessageAsRead('${data.id}', '${data.status || 'Neu'}');">
                     <div class="flex justify-between items-start mb-2">
-                        <div class="flex flex-wrap items-center gap-1.5">
-                            <span class="bg-amber-100 text-amber-800 text-xs font-medium mr-1.5 px-2.5 py-0.5 rounded">✉️ Anfrage</span>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex items-center" onclick="event.stopPropagation();">
+                                <input type="checkbox" class="message-select-checkbox rounded border-gray-300 text-gold focus:ring-gold h-4 w-4 cursor-pointer" data-id="${data.id}" onchange="window.onMessageCheckboxChange();">
+                            </div>
+                            <span class="bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-0.5 rounded">✉️ Anfrage</span>
                             <span class="font-bold text-gray-900 text-sm">${esc(senderName)}</span>
                             ${statusBadge}
                         </div>
-                        <span class="text-xs text-gray-400">${dateStr}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-400">${dateStr}</span>
+                            <button type="button" title="Nachricht löschen" onclick="event.stopPropagation(); window.deleteMessage('${data.id}')" class="btn-delete-msg p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
                     </div>
-                    <div class="text-xs text-gray-600 line-clamp-1 mb-1">
+                    <div class="text-xs text-gray-600 line-clamp-1 mb-1 pl-6">
                         <strong>${esc(data.subject || 'Kontaktanfrage')}:</strong> ${esc(data.message || '')}
                     </div>
-                    <div class="text-[11px] text-gray-400 flex flex-wrap items-center gap-3">
+                    <div class="text-[11px] text-gray-400 flex flex-wrap items-center gap-3 pl-6">
                         <span>✉️ ${esc(senderEmail)}</span>
                         ${eventLoc ? `<span class="bg-gray-100 px-2 py-0.5 rounded text-gray-600">📍 Ort: ${esc(eventLoc)}</span>` : ''}
                         ${eventDate ? `<span class="bg-gray-100 px-2 py-0.5 rounded text-gray-600">📅 Datum: ${esc(eventDate)}</span>` : ''}
@@ -2925,6 +3041,10 @@ window.renderFilteredMessages = function() {
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
                                     ${data.replyText ? 'Erneut antworten' : 'Antworten (E-Mail)'}
                                 </button>
+                                <button type="button" onclick="event.stopPropagation(); window.deleteMessage('${data.id}')" class="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    <span>Löschen</span>
+                                </button>
                             </div>
 
                             <button type="button" onclick="event.stopPropagation(); window.toggleMessageErledigt('${data.id}', '${rawStatus}')" class="px-4 py-2 rounded-lg font-semibold text-xs transition-all flex items-center gap-1.5 ${isErledigt ? 'bg-green-600 text-white hover:bg-green-700 shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'}">
@@ -2936,6 +3056,8 @@ window.renderFilteredMessages = function() {
             </div>
         `;
     }).join('');
+
+    if (window.updateBulkDeleteButton) window.updateBulkDeleteButton();
 };
 
 window.resetMessageFilters = function() {
@@ -2959,3 +3081,4 @@ window.resetMessageFilters = function() {
 
     window.renderFilteredMessages();
 };
+
