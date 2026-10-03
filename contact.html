@@ -8,7 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/png" href="assets/logo_dark.png">
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 </head>
 <body class="bg-gray-50 antialiased overflow-x-hidden">
 
@@ -122,15 +121,10 @@
                         </div>
 
                         
-                        <!-- Invisible Anti-Spam Honeypots (Off-screen) -->
-                        <div style="position: absolute; left: -9999px; top: -9999px; width: 1px; height: 1px; overflow: hidden;" aria-hidden="true">
-                            <input type="text" name="contact_user_title" id="contact_user_title" tabindex="-1" autocomplete="new-password">
-                            <input type="text" name="company_website_url_val" id="company_website_url_val" tabindex="-1" autocomplete="new-password">
-                            <input type="text" name="b_contact_fax_num" id="b_contact_fax_num" tabindex="-1" autocomplete="new-password">
+                        <div>
+                            <label id="captcha-label" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">Wie viel ist X + Y?</label>
+                            <input type="number" id="captcha-input" class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-gold transition-colors bg-transparent text-sm" placeholder="Antwort..." required>
                         </div>
-
-                        <!-- Cloudflare Turnstile Container -->
-                        <div id="turnstile-widget" class="my-2"></div>
 
                         <div class="pt-4">
                             <button type="submit" class="btn-gold w-full md:w-auto">Anfrage absenden</button>
@@ -167,29 +161,6 @@
         const db = getFirestore(app);
 
         document.addEventListener('DOMContentLoaded', () => {
-            const formMountTime = Date.now();
-            let turnstileWidgetId = null;
-
-            function initTurnstile() {
-                if (window.turnstile && document.getElementById('turnstile-widget') && turnstileWidgetId === null) {
-                    try {
-                        turnstileWidgetId = window.turnstile.render('#turnstile-widget', {
-                            sitekey: '1x00000000000000000000AA',
-                            theme: 'light',
-                            size: 'flexible'
-                        });
-                    } catch (e) {
-                        console.warn('Turnstile render notice:', e);
-                    }
-                }
-            }
-
-            if (window.turnstile) {
-                initTurnstile();
-            } else {
-                window.addEventListener('load', () => setTimeout(initTurnstile, 600));
-            }
-
             // Custom Dropdown logic
             function setupCustomDropdown(idPrefix, onChange) {
                 const btn = document.getElementById(`${idPrefix}-btn`);
@@ -236,55 +207,22 @@
 
             setupCustomDropdown('event-type');
 
-            function isGibberishClient(text) {
-                if (!text || typeof text !== 'string') return false;
-                const trimmed = text.trim();
-                if (trimmed.length > 15 && !trimmed.includes(' ')) {
-                    const upperCount = (trimmed.match(/[A-Z]/g) || []).length;
-                    const lowerCount = (trimmed.match(/[a-z]/g) || []).length;
-                    if (upperCount > 3 && lowerCount > 3) return true;
-                }
-                return false;
+            // Captcha
+            let n1 = Math.floor(Math.random() * 10) + 1;
+            let n2 = Math.floor(Math.random() * 10) + 1;
+            let sum = n1 + n2;
+            const captchaLabel = document.getElementById('captcha-label');
+            if (captchaLabel) {
+                captchaLabel.innerText = `Wie viel ist ${n1} + ${n2}?`;
             }
 
             const form = document.getElementById('contact-form');
             if (form) {
                 form.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    
-                    const submitBtn = form.querySelector('button[type="submit"]');
-                    const origBtnText = submitBtn ? submitBtn.innerText : '';
-                    if (submitBtn) {
-                        submitBtn.disabled = true;
-                        submitBtn.innerText = 'Wird gesendet...';
-                    }
-
-                    const hpTitle = document.getElementById('contact_user_title')?.value || '';
-                    const hp1 = document.getElementById('company_website_url_val')?.value || '';
-                    const hp2 = document.getElementById('b_contact_fax_num')?.value || '';
-                    const elapsedMs = Date.now() - formMountTime;
-
-                    let turnstileToken = '';
-                    if (window.turnstile && turnstileWidgetId !== null) {
-                        turnstileToken = window.turnstile.getResponse(turnstileWidgetId);
-                    }
-                    if (!turnstileToken && window.turnstile) {
-                        turnstileToken = window.turnstile.getResponse();
-                    }
-
-                    // Honeypot or ultra-fast bot check: silently fake success
-                    if (hpTitle || hp1 || hp2 || elapsedMs < 1500) {
-                        setTimeout(() => {
-                            if (submitBtn) {
-                                submitBtn.disabled = false;
-                                submitBtn.innerText = origBtnText;
-                            }
-                            document.getElementById('success-modal').classList.remove('hidden');
-                            form.reset();
-                            if (window.turnstile && turnstileWidgetId !== null) {
-                                window.turnstile.reset(turnstileWidgetId);
-                            }
-                        }, 600);
+                    const u_ans = parseInt(document.getElementById('captcha-input').value);
+                    if(u_ans !== sum) {
+                        alert('Captcha falsch. Bitte versuchen Sie es erneut.');
                         return;
                     }
 
@@ -294,74 +232,35 @@
                     const phone = document.getElementById('phone').value;
                     const type = document.getElementById('event-type').value;
                     const message = document.getElementById('message').value;
-
-                    if (isGibberishClient(fname) || isGibberishClient(lname) || isGibberishClient(message)) {
-                        setTimeout(() => {
-                            if (submitBtn) {
-                                submitBtn.disabled = false;
-                                submitBtn.innerText = origBtnText;
-                            }
-                            document.getElementById('success-modal').classList.remove('hidden');
-                            form.reset();
-                            if (window.turnstile && turnstileWidgetId !== null) {
-                                window.turnstile.reset(turnstileWidgetId);
-                            }
-                        }, 600);
-                        return;
-                    }
-
-                    const payload = {
-                        firstName: fname,
-                        lastName: lname,
-                        email: email,
-                        phone: phone,
-                        eventType: type,
-                        message: message,
-                        elapsedMs: elapsedMs,
-                        contact_user_title: hpTitle,
-                        company_website_url_val: hp1,
-                        b_contact_fax_num: hp2,
-                        turnstileToken: turnstileToken || '1x00000000000000000000AA'
-                    };
-
+                    
                     try {
-                        const res = await fetch('https://us-central1-selena-events-dashboard.cloudfunctions.net/submitContactInquiry', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
+                        await addDoc(collection(db, 'messages'), {
+                            firstName: fname,
+                            lastName: lname,
+                            email: email,
+                            phone: phone,
+                            eventType: type,
+                            message: message,
+                            createdAt: serverTimestamp()
                         });
-                        
-                        const resData = await res.json().catch(() => ({}));
-                        if (!res.ok) {
-                            throw new Error(resData.error || 'Fehler beim Senden.');
-                        }
-
                         document.getElementById('success-modal').classList.remove('hidden');
                         form.reset();
-                        if (window.turnstile && turnstileWidgetId !== null) {
-                            window.turnstile.reset(turnstileWidgetId);
-                        }
                         
                         // Reset custom dropdown displays
-                        const displayEl = document.getElementById('event-type-display');
-                        if (displayEl) {
-                            displayEl.innerText = '-- Bitte wählen --';
-                            displayEl.classList.add('text-gray-400');
-                            displayEl.classList.remove('text-gray-700');
-                        }
+                        document.getElementById('event-type-display').innerText = '-- Bitte wählen --';
+                        document.getElementById('event-type-display').classList.add('text-gray-400');
+                        document.getElementById('event-type-display').classList.remove('text-gray-700');
                         document.getElementById('event-type').value = '';
+                        
+                        // Reset captcha
+                        n1 = Math.floor(Math.random() * 10) + 1;
+                        n2 = Math.floor(Math.random() * 10) + 1;
+                        sum = n1 + n2;
+                        if (captchaLabel) captchaLabel.innerText = `Wie viel ist ${n1} + ${n2}?`;
                     } catch(error) {
-                        console.error('Error submitting inquiry: ', error);
+                        console.error('Error adding document: ', error);
                         document.getElementById('error-modal').classList.remove('hidden');
-                        document.getElementById('error-modal-msg').innerText = error.message || 'Fehler beim Senden. Bitte versuchen Sie es später erneut.';
-                        if (window.turnstile && turnstileWidgetId !== null) {
-                            window.turnstile.reset(turnstileWidgetId);
-                        }
-                    } finally {
-                        if (submitBtn) {
-                            submitBtn.disabled = false;
-                            submitBtn.innerText = origBtnText;
-                        }
+                        document.getElementById('error-modal-msg').innerText = 'Fehler beim Senden. Bitte versuchen Sie es später erneut.';
                     }
                 });
             }

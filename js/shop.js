@@ -482,7 +482,7 @@ if (checkoutLoginBtn) {
         const retUrl = isSubdir
             ? (window.location.pathname.split('/').slice(-2).join('/') + (window.location.search || ''))
             : (window.location.pathname.split('/').pop() + (window.location.search || ''));
-        window.location.href = loginPath + "?redirect=" + encodeURIComponent(retUrl || 'shop.html');
+        window.location.href = loginPath + "?redirect=" + encodeURIComponent((retUrl || 'shop').replace(/\.html$/i, ''));
     });
 }
 

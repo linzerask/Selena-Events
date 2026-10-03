@@ -460,13 +460,6 @@ function openModal(id) {
         };
     }
 
-    const modalShareBtn = document.getElementById('modal-share-btn');
-    if (modalShareBtn) {
-        modalShareBtn.onclick = () => {
-            window.shareCatalogItem(encodeURIComponent(product.title), product.id, product.source || (window.location.pathname.includes('verleih') ? 'verleih' : 'shop'));
-        };
-    }
-    
     productModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden'; // Prevent background scrolling
 }
@@ -508,7 +501,7 @@ function renderProducts() {
         productGrid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">Keine Produkte gefunden, die diesen Kriterien entsprechen.</div>';
     } else {
         productGrid.innerHTML = pageProducts.map(p => `
-            <div class="bg-white shadow-sm hover:shadow-md transition-shadow group flex flex-col fade-in cursor-pointer overflow-hidden rounded-xl border border-gray-100" onclick="window.location.href='verleih-items/product?id=${p.id}'">
+            <div class="bg-white shadow-sm hover:shadow-md transition-shadow group flex flex-col fade-in cursor-pointer overflow-hidden rounded-xl border border-gray-100" onclick="openModal(${p.id})">
                 <div class="overflow-hidden relative aspect-square bg-gray-50 flex items-center justify-center p-4">
                     ${p.tags.includes('Premium') ? '<div class="absolute top-2 right-2 bg-gold text-white text-xs px-2 py-1 z-10 uppercase tracking-widest rounded shadow-sm">Premium</div>' : ''}
                     <img src="${p.img}" alt="${p.title}" class="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500">
@@ -517,43 +510,12 @@ function renderProducts() {
                     <h3 class="text-lg mb-2 font-semibold text-gray-900 group-hover:text-gold transition-colors">${p.title}</h3>
                     <p class="text-sm text-gray-500 line-clamp-2 mb-4">${p.shortDesc}</p>
                     <div class="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
-                        ${(() => {
-                            if (p.priceMode === 'from') {
-                                return `<span class="text-gold font-serif text-xl font-medium"><span class="text-xs text-gray-500 mr-1 font-normal">from</span>${p.price} €</span>`;
-                            }
-                            const isReq = p.priceMode === 'request' || String(p.price) === '0' || p.price === 'Auf Anfrage' || p.price === 'On Request' || p.price === 'La Cerere';
-                            if (isReq) {
-                                return '<span class="text-gold font-serif text-base font-semibold">On Request</span>';
-                            }
-                            return `<span class="text-gold font-serif text-xl font-medium">${p.price} €</span>`;
-                        })()}
+                        <span class="text-gold font-serif text-xl font-medium">${p.price} €</span>
                         <div class="flex space-x-3 items-center">
                             <span class="text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover:text-gold transition-colors">Details &rarr;</span>
-                            ${(() => {
-                                const inWishlist = window.userWishlist && window.userWishlist.some(item => item.id == p.id && item.type == currentSource);
-                                const heartFill = inWishlist ? 'currentColor' : 'none';
-                                const heartClass = inWishlist ? 'text-red-500' : 'text-gray-400 hover:text-red-500 transition-colors';
-                                return `
-                            <button onclick="event.stopPropagation(); addToWishlist('${p.id}')" class="${heartClass}" title="${inWishlist ? 'Von Wunschliste entfernen' : 'Zur Wunschliste hinzufügen'}">
-                                <svg class="w-6 h-6" fill="${heartFill}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                            </button>`;
-                            })()}
-                            <button onclick="event.stopPropagation(); window.shareCatalogItem(encodeURIComponent(p.title), p.id, 'verleih')" class="bg-gray-100 hover:bg-gold hover:text-white text-gray-600 rounded-full w-8 h-8 flex items-center justify-center transition-colors" title="Produkt teilen">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                            <button onclick="event.stopPropagation(); addToCart(${p.id})" class="bg-gray-100 hover:bg-gold hover:text-white text-gray-600 rounded-full w-8 h-8 flex items-center justify-center transition-colors" title="In den Warenkorb">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                             </button>
-                            ${(() => {
-                                const isReq = p.priceMode === 'request' || p.priceMode === 'from' || String(p.price) === '0' || p.price === 'Auf Anfrage' || p.price === 'On Request' || p.price === 'La Cerere';
-                                if (isReq) {
-                                    return `
-                                    <button onclick="event.stopPropagation(); window.openProductInquiryModal('${p.id}', 'verleih')" class="bg-gold hover:bg-black text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors shadow-sm" title="Send Inquiry">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                                    </button>`;
-                                }
-                                return `
-                                <button onclick="event.stopPropagation(); addToCart('${p.id}')" class="bg-gray-900 hover:bg-gold text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors shadow-sm" title="Add to Cart">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                                </button>`;
-                            })()}
                         </div>
                     </div>
                 </div>
@@ -597,18 +559,7 @@ function renderPagination(totalPages) {
 
 // Cart Logic
 function addToCart(id) {
-    const checkItem = (typeof products !== 'undefined') ? products.find(p => String(p.id) === String(id)) : null;
-    if (checkItem && (checkItem.priceMode === 'request' || String(checkItem.price) === '0' || checkItem.price === 'Auf Anfrage')) {
-        if (typeof window.openProductInquiryModal === 'function') {
-            window.openProductInquiryModal(id, 'verleih');
-        }
-        return;
-    }
-    let product = products.find(p => String(p.id) === String(id));
-    if (!product && window.currentLoadedProduct && String(window.currentLoadedProduct.id) === String(id)) {
-        product = window.currentLoadedProduct;
-        if (!products.some(p => String(p.id) === String(id))) products.push(product);
-    }
+    const product = products.find(p => p.id === id);
     if (!product) return;
 
     const existingItem = cart.find(item => item.id === id);
@@ -629,8 +580,7 @@ function addToCart(id) {
 }
 
 function removeFromCart(id) {
-    cart = cart.filter(item => String(item.id) !== String(id));
-    saveCart();
+    cart = cart.filter(item => item.id !== id);
     updateCartUI();
 }
 
@@ -664,7 +614,7 @@ function updateCartUI() {
                     <p class="text-xs text-gray-500">${item.quantity} x ${item.price} €</p>
                 </div>
                 <div class="flex flex-col items-end">
-                    <button onclick="removeFromCart('${item.id}')" class="text-gray-400 hover:text-red-500 transition-colors p-1" title="Entfernen">
+                    <button onclick="removeFromCart(${item.id})" class="text-gray-400 hover:text-red-500 transition-colors p-1" title="Entfernen">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                     <p class="text-sm font-medium text-gold mt-1">${item.price * item.quantity} €</p>
@@ -696,19 +646,6 @@ function openCheckout() {
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const checkoutTotalDisplay = document.getElementById('checkout-total');
     if (checkoutTotalDisplay) checkoutTotalDisplay.textContent = total + ' €';
-    const checkoutSubtotalDisplay = document.getElementById('checkout-subtotal');
-    if (checkoutSubtotalDisplay) checkoutSubtotalDisplay.textContent = total + ' €';
-    const hasTransport = cart.some(i => i.transportEnabled && (i.pricePerKm > 0 || i.transportFlatFee > 0 || i.transportMode === 'distance'));
-    const transportLine = document.getElementById('checkout-transport');
-    if (transportLine) {
-        if (hasTransport) {
-            transportLine.textContent = "Calculated by address";
-            transportLine.className = "text-xs font-semibold text-amber-600";
-        } else {
-            transportLine.textContent = "0 € (Free / Self-pickup)";
-            transportLine.className = "text-sm text-gray-600";
-        }
-    }
     
     if (window.currentUser) {
         const emailField = document.getElementById('checkout-email');
@@ -730,22 +667,11 @@ function openCheckout() {
             window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, "users", window.currentUser.uid)).then(docSnap => {
                 if (docSnap.exists()) {
                     const userData = docSnap.data();
-                    window.currentUserProfileData = userData;
                     if (nameField && !nameField.value && userData.name) nameField.value = userData.name;
                     const phoneField = document.getElementById('checkout-phone');
                     if (phoneField && !phoneField.value && userData.phone) phoneField.value = userData.phone;
                     const addressField = document.getElementById('checkout-address');
-                    const postcodeField = document.getElementById('checkout-postcode');
-                    const sameAddrWrap = document.getElementById('checkout-same-address-wrapper');
-                    const sameAddrCheckbox = document.getElementById('checkout-same-address');
-                    if (sameAddrWrap && userData.address) {
-                        sameAddrWrap.classList.remove('hidden');
-                        if (sameAddrCheckbox) {
-                            sameAddrCheckbox.checked = true;
-                            if (addressField) addressField.value = userData.address || '';
-                            if (postcodeField && userData.postcode) postcodeField.value = userData.postcode;
-                        }
-                    }
+                    if (addressField && !addressField.value && userData.address) addressField.value = userData.address;
                 }
             }).catch(e => console.warn(e));
         } catch(e) {}
@@ -765,8 +691,6 @@ function openCheckout() {
         }
     }
 
-    document.body.classList.remove('mobile-cart-open');
-    document.body.classList.remove('mobile-filter-open');
     checkoutModal.classList.remove('hidden');
     checkoutSuccess.classList.add('hidden');
     checkoutSubmit.disabled = false;
@@ -887,7 +811,7 @@ if (checkoutForm) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     items: cart,
-                    customer: { name, email, address, postcode, phone, eventDate, notes }, orderId: docRef.id,
+                    customerEmail: email, orderId: docRef.id,
                     successUrl: sUrl,
                     cancelUrl: cUrl
                 })
@@ -989,21 +913,21 @@ const CART_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 function loadCart() {
     try {
         const storedStr = localStorage.getItem('selena_cart');
-        if (storedStr) {
-            const stored = JSON.parse(storedStr);
-            if (Array.isArray(stored)) return stored;
-            if (stored && stored.timestamp) {
-                if (Date.now() - stored.timestamp <= CART_EXPIRY_MS) {
-                    return stored.items || [];
-                } else {
-                    localStorage.removeItem('selena_cart');
-                }
-            }
+        if (!storedStr) return [];
+        
+        const stored = JSON.parse(storedStr);
+        
+        // Handle migration from previous array-only storage
+        if (Array.isArray(stored)) {
+            return stored;
         }
-        const leg = localStorage.getItem('cart');
-        if (leg) {
-            const parsed = JSON.parse(leg);
-            if (Array.isArray(parsed)) return parsed;
+        
+        if (stored && stored.timestamp) {
+            if (Date.now() - stored.timestamp > CART_EXPIRY_MS) {
+                localStorage.removeItem('selena_cart');
+                return [];
+            }
+            return stored.items || [];
         }
     } catch (e) {
         console.error("Error loading cart", e);
@@ -1014,27 +938,24 @@ function loadCart() {
 cart = loadCart();
 
 function saveCart() {
-    const data = JSON.stringify({ items: cart, timestamp: Date.now() });
-    localStorage.setItem('selena_cart', data);
-    localStorage.setItem('cart', JSON.stringify(cart));
+    localStorage.setItem('selena_cart', JSON.stringify({
+        items: cart,
+        timestamp: Date.now()
+    }));
 }
 
 const isShopPage = false;
 const currentSource = isShopPage ? 'shop' : 'verleih';
 
 addToCart = function(id) {
-    let product = products.find(p => String(p.id) === String(id));
-    if (!product && window.currentLoadedProduct && String(window.currentLoadedProduct.id) === String(id)) {
-        product = window.currentLoadedProduct;
-        if (!products.some(p => String(p.id) === String(id))) products.push(product);
-    }
+    const product = products.find(p => p.id === id);
     if (!product) return;
 
-    const existingItem = cart.find(item => String(item.id) === String(id) && (item.source === currentSource || item.source === 'custom' || item.source === 'package'));
+    const existingItem = cart.find(item => String(item.id) === String(id) && item.source === currentSource);
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
-        cart.push({ ...product, quantity: 1, source: product.source || currentSource });
+        cart.push({ ...product, quantity: 1, source: currentSource });
     }
 
     saveCart();
@@ -1050,7 +971,7 @@ addToCart = function(id) {
 
 removeFromCart = function(id) {
     // Only remove matching ID for the current context
-    cart = cart.filter(item => !(String(item.id) === String(id) && (item.source === currentSource || item.source === 'custom' || item.source === 'package')));
+    cart = cart.filter(item => !(String(item.id) === String(id) && item.source === currentSource));
     saveCart();
     updateCartUI();
 };
@@ -1059,7 +980,7 @@ updateCartUI = function() {
     if (!cartItemsContainer) return;
 
     // Filter to ONLY show items for the current page context
-    const visibleItems = cart.filter(i => (i.source === currentSource || i.source === 'custom' || i.source === 'package'));
+    const visibleItems = cart.filter(i => i.source === currentSource);
     const totalItems = visibleItems.reduce((sum, item) => sum + item.quantity, 0);
 
     // Update Mobile Cart Badge
@@ -1108,7 +1029,7 @@ updateCartUI = function() {
                     <p class="text-xs text-gray-500">${item.quantity} x ${item.price} €</p>
                 </div>
                 <div class="flex flex-col items-end">
-                    <button onclick="removeFromCart('${item.id}')" class="text-gray-400 hover:text-red-500 transition-colors p-1" title="Entfernen">
+                    <button onclick="removeFromCart(${item.id})" class="text-gray-400 hover:text-red-500 transition-colors p-1" title="Entfernen">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                     <p class="text-sm font-medium text-gold mt-1">${item.price * item.quantity} €</p>
@@ -1127,29 +1048,14 @@ updateCartUI = function() {
 const originalOpenCheckout = typeof openCheckout === 'function' ? openCheckout : null;
 if (originalOpenCheckout) {
     openCheckout = function() {
-        const itemsToCheckout = cart.filter(i => (i.source === currentSource || i.source === 'custom' || i.source === 'package'));
+        const itemsToCheckout = cart.filter(i => i.source === currentSource);
         if (itemsToCheckout.length === 0) return;
-        originalOpenCheckout();
         
         // Update checkout total display for this source only
         const total = itemsToCheckout.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         if (checkoutTotalDisplay) checkoutTotalDisplay.textContent = total + ' €';
-    const checkoutSubtotalDisplay = document.getElementById('checkout-subtotal');
-    if (checkoutSubtotalDisplay) checkoutSubtotalDisplay.textContent = total + ' €';
-    const hasTransport = cart.some(i => i.transportEnabled && (i.pricePerKm > 0 || i.transportFlatFee > 0 || i.transportMode === 'distance'));
-    const transportLine = document.getElementById('checkout-transport');
-    if (transportLine) {
-        if (hasTransport) {
-            transportLine.textContent = "Calculated by address";
-            transportLine.className = "text-xs font-semibold text-amber-600";
-        } else {
-            transportLine.textContent = "0 € (Free / Self-pickup)";
-            transportLine.className = "text-sm text-gray-600";
-        }
-    }
         
-        queueLiveTransportCalc();
-    if (checkoutModal) {
+        if (checkoutModal) {
             checkoutModal.classList.remove('hidden');
             setTimeout(() => {
                 checkoutModal.querySelector('div.relative').classList.add('scale-100', 'opacity-100');
@@ -1180,7 +1086,7 @@ const hookCheckoutSuccess = () => {
                     }
                     
                     // Clear ONLY the items from the checked-out source
-                    cart = cart.filter(i => (i.source !== currentSource && i.source !== 'custom' && i.source !== 'package'));
+                    cart = cart.filter(i => i.source !== currentSource);
                     saveCart();
                     updateCartUI();
                 }
@@ -1212,16 +1118,6 @@ window.fetchCustomProducts = async function() {
         let newProducts = [];
         querySnapshot.forEach((doc) => {
             const prod = doc.data();
-            const fixImgPath = (url) => {
-                if (!url) return '../assets/logo_dark.png';
-                if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
-                if (url.startsWith('../')) return url;
-                return '../' + url.replace(/^\.?\//, '');
-            };
-            const cleanImg = fixImgPath(prod.img);
-            const cleanImages = (prod.images && Array.isArray(prod.images) && prod.images.length > 0) 
-                ? prod.images.map(fixImgPath) 
-                : [cleanImg];
             
             // Build long description with features
             let featuresHtml = '';
@@ -1229,278 +1125,29 @@ window.fetchCustomProducts = async function() {
                 featuresHtml = '<h3>Eigenschaften:</h3><ul>' + prod.features.map(f => '<li>' + f + '</li>').join('') + '</ul>';
             }
             
-            let prodTags = Array.isArray(prod.tags) && prod.tags.length > 0 ? [...prod.tags] : [];
-            if (!prodTags.includes('Custom')) prodTags.push('Custom');
-            if (prod.isPremium && !prodTags.includes('Premium')) prodTags.unshift('Premium');
-
             newProducts.push({
                 id: doc.id,
                 title: prod.title,
-                img: cleanImg,
+                img: prod.img || '../assets/logo_dark.png',
                 price: prod.price,
-                priceMode: prod.priceMode || (prod.price == 0 ? 'request' : 'fixed'),
                 category: prod.category || "Neu",
-                tags: prodTags,
-                images: cleanImages,
+                tags: prod.isPremium ? ["Custom", "Premium"] : ["Custom"],
+                images: prod.images || [prod.img || '../assets/logo_dark.png'],
                 shortDesc: prod.subtitle || "",
                 longDesc: '<h2>Beschreibung</h2><p>' + (prod.subtitle || '') + '</p>' + featuresHtml,
-                source: "custom",
-                transportEnabled: prod.transportEnabled || false,
-                pricePerKm: prod.pricePerKm !== undefined ? Number(prod.pricePerKm) : 0.50,
-                transportFlatFee: prod.transportFlatFee ? Number(prod.transportFlatFee) : 0,
-                transportMode: prod.transportMode || (prod.transportEnabled ? 'distance' : 'none')
+                source: "custom"
             });
         });
         
         if (newProducts.length > 0) {
-            // 1. Identify all IDs, legacy IDs, and normalized titles from Firestore products
-            const importedKeys = new Set();
-            newProducts.forEach(p => {
-                if (p.id) {
-                    importedKeys.add(String(p.id).toLowerCase());
-                    const m = String(p.id).match(/^catalog_(?:shop|verleih)_(.*)$/i);
-                    if (m) importedKeys.add(String(m[1]).toLowerCase());
-                }
-                if (p.legacyId) importedKeys.add(String(p.legacyId).toLowerCase());
-                if (p.title) importedKeys.add(p.title.trim().toLowerCase());
-            });
-
-            // 2. Remove hardcoded/static clones from the products array
-            for (let i = products.length - 1; i >= 0; i--) {
-                const item = products[i];
-                if (item.source !== 'custom' && item.source !== 'package') {
-                    const strId = String(item.id).toLowerCase();
-                    const strTitle = item.title ? item.title.trim().toLowerCase() : '';
-                    if (importedKeys.has(strId) || importedKeys.has(strTitle)) {
-                        products.splice(i, 1);
-                    }
-                }
-            }
-
-            // 3. Prevent duplicates among newProducts themselves
-            const existingIds = new Set(products.map(p => String(p.id)));
-            const uniqueNew = newProducts.filter(p => !existingIds.has(String(p.id)));
-
-            // 4. Prepend live Firestore products so they are fully manageable
-            products.unshift(...uniqueNew);
+            // Check to avoid duplicates on re-fetch
+            const existingProductIds = products.filter(p => p.source === 'custom').map(p => p.id);
+            newProducts = newProducts.filter(p => !existingProductIds.includes(p.id));
+            
+            products.unshift(...newProducts);
             if (typeof applyFilters === 'function') applyFilters();
         }
     } catch (error) {
         console.error("Error fetching custom products:", error);
     }
 };
-
-// Auto open modal if ?item= parameter present
-document.addEventListener('DOMContentLoaded', () => {
-    const itemParam = new URLSearchParams(window.location.search).get('item');
-    if (itemParam && typeof openModal === 'function') {
-        setTimeout(() => openModal(itemParam), 400);
-    }
-});
-
-// --- Checkout Same-Address & Transport Display Hook ---
-document.addEventListener('DOMContentLoaded', () => {
-    const sameAddr = document.getElementById('checkout-same-address');
-    if (sameAddr) {
-        sameAddr.addEventListener('change', () => {
-            const addressField = document.getElementById('checkout-address');
-            const postcodeField = document.getElementById('checkout-postcode');
-            if (sameAddr.checked && window.currentUserProfileData) {
-                if (addressField) addressField.value = window.currentUserProfileData.address || '';
-                if (postcodeField && window.currentUserProfileData.postcode) postcodeField.value = window.currentUserProfileData.postcode;
-            }
-        });
-    }
-});
-
-// --- Auto-open checkout modal if ?checkout=open parameter is present ---
-document.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('checkout') === 'open' || params.get('openCheckout') === 'true') {
-        setTimeout(() => {
-            if (typeof openCheckout === 'function') {
-                openCheckout();
-            }
-        }, 500);
-    }
-});
-
-// ==============================================================
-// --- LIVE DYNAMIC TRANSPORT CALCULATION & ADDRESS TOGGLE ---
-// ==============================================================
-let liveTransportTimer = null;
-
-async function triggerLiveTransportCalc() {
-    const sameAddr = document.getElementById('checkout-same-address');
-    const diffContainer = document.getElementById('checkout-diff-address-container');
-    const diffAddrInput = document.getElementById('checkout-diff-address');
-    const diffPostcodeInput = document.getElementById('checkout-diff-postcode');
-    const diffCityInput = document.getElementById('checkout-diff-city');
-
-    const primaryAddrInput = document.getElementById('checkout-address');
-    const primaryPostcodeInput = document.getElementById('checkout-postcode');
-
-    const transportLine = document.getElementById('checkout-transport');
-    const totalLine = document.getElementById('checkout-total');
-    const subtotalLine = document.getElementById('checkout-subtotal');
-
-    const currentCart = (typeof cart !== 'undefined') ? cart : [];
-    if (!currentCart || currentCart.length === 0) return;
-
-    const subtotal = currentCart.reduce((sum, item) => {
-        const pMatch = item.price ? item.price.toString().match(/[0-9.,]+/) : null;
-        const pVal = pMatch ? parseFloat(pMatch[0].replace(',', '.')) : 0;
-        return sum + (pVal * (item.quantity || 1));
-    }, 0);
-
-    if (subtotalLine) subtotalLine.textContent = subtotal.toFixed(2).replace('.', ',') + ' €';
-
-    const hasTransport = currentCart.some(i => i.transportEnabled && (i.pricePerKm > 0 || i.transportFlatFee > 0 || i.transportMode === 'distance'));
-
-    if (!hasTransport) {
-        if (transportLine) {
-            transportLine.textContent = "0 € (Kostenlos / Abholung)";
-            transportLine.className = "text-sm text-gray-600";
-        }
-        if (totalLine) totalLine.textContent = subtotal.toFixed(2).replace('.', ',') + ' €';
-        window._liveTransportFee = 0;
-        return;
-    }
-
-    // Determine effective delivery address
-    let effAddr = '';
-    let effPlz = '';
-
-    if (sameAddr && !sameAddr.checked && diffAddrInput && diffAddrInput.value.trim()) {
-        effAddr = diffAddrInput.value.trim();
-        effPlz = diffPostcodeInput ? diffPostcodeInput.value.trim() : '';
-        const city = diffCityInput ? diffCityInput.value.trim() : '';
-        if (city) effAddr += ', ' + city;
-    } else if (primaryAddrInput) {
-        effAddr = primaryAddrInput.value.trim();
-        effPlz = primaryPostcodeInput ? primaryPostcodeInput.value.trim() : '';
-    }
-
-    if (!effAddr || effAddr.length < 3) {
-        if (transportLine) {
-            transportLine.textContent = "Wird nach Adresse berechnet";
-            transportLine.className = "text-xs font-semibold text-amber-600";
-        }
-        if (totalLine) totalLine.textContent = subtotal.toFixed(2).replace('.', ',') + ' €';
-        window._liveTransportFee = 0;
-        return;
-    }
-
-    if (transportLine) {
-        transportLine.innerHTML = '<span class="animate-pulse text-amber-600">Berechne Fahrtstrecke...</span>';
-    }
-
-    try {
-        const queryStr = `${effAddr}, ${effPlz}, Österreich`.trim();
-        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(queryStr)}`);
-        const geoData = await geoRes.json();
-
-        if (!geoData || geoData.length === 0) {
-            if (transportLine) {
-                transportLine.textContent = "Wird bei Kasse ermittelt";
-                transportLine.className = "text-xs font-semibold text-amber-600";
-            }
-            return;
-        }
-
-        const lat = geoData[0].lat;
-        const lon = geoData[0].lon;
-
-        // OSRM Driving Distance from Traun HQ (14.2393, 48.2215)
-        const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/14.2393,48.2215;${lon},${lat}?overview=false`);
-        const osrmData = await osrmRes.json();
-
-        if (!osrmData.routes || osrmData.routes.length === 0) {
-            if (transportLine) {
-                transportLine.textContent = "Wird bei Kasse ermittelt";
-                transportLine.className = "text-xs font-semibold text-amber-600";
-            }
-            return;
-        }
-
-        const distanceKm = osrmData.routes[0].distance / 1000;
-
-        let maxPricePerKm = 0.50;
-        let maxFlatFee = 0;
-        currentCart.forEach(i => {
-            if (i.transportEnabled) {
-                if (i.pricePerKm !== undefined && Number(i.pricePerKm) > 0) maxPricePerKm = Math.max(maxPricePerKm, Number(i.pricePerKm));
-                if (i.transportFlatFee !== undefined && Number(i.transportFlatFee) > 0) maxFlatFee = Math.max(maxFlatFee, Number(i.transportFlatFee));
-            }
-        });
-
-        // Roundtrip factor 2 (Lieferung + Abholung)
-        const transportFee = (distanceKm * maxPricePerKm * 2) + maxFlatFee;
-        window._liveTransportFee = transportFee;
-
-        if (transportLine) {
-            transportLine.innerHTML = `<span class="text-gold font-bold">${transportFee.toFixed(2).replace('.', ',')} €</span> <span class="text-xs text-gray-500">(${distanceKm.toFixed(1).replace('.', ',')} km Hin- & Rückfahrt)</span>`;
-        }
-
-        const grandTotal = subtotal + transportFee;
-        if (totalLine) {
-            totalLine.textContent = grandTotal.toFixed(2).replace('.', ',') + ' €';
-        }
-
-    } catch (err) {
-        console.warn("Live transport calculation fallback:", err);
-        if (transportLine) {
-            transportLine.textContent = "Wird nach Adresse berechnet";
-            transportLine.className = "text-xs font-semibold text-amber-600";
-        }
-    }
-}
-
-function queueLiveTransportCalc() {
-    clearTimeout(liveTransportTimer);
-    liveTransportTimer = setTimeout(triggerLiveTransportCalc, 400);
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const sameAddr = document.getElementById('checkout-same-address');
-    const diffContainer = document.getElementById('checkout-diff-address-container');
-    const diffAddrInput = document.getElementById('checkout-diff-address');
-    const diffPostcodeInput = document.getElementById('checkout-diff-postcode');
-    const diffCityInput = document.getElementById('checkout-diff-city');
-    const primaryAddrInput = document.getElementById('checkout-address');
-    const primaryPostcodeInput = document.getElementById('checkout-postcode');
-
-    if (sameAddr) {
-        sameAddr.addEventListener('change', () => {
-            if (sameAddr.checked) {
-                if (diffContainer) diffContainer.classList.add('hidden');
-                if (window.currentUserProfileData) {
-                    if (primaryAddrInput) primaryAddrInput.value = window.currentUserProfileData.address || '';
-                    if (primaryPostcodeInput && window.currentUserProfileData.postcode) primaryPostcodeInput.value = window.currentUserProfileData.postcode;
-                }
-            } else {
-                if (diffContainer) {
-                    diffContainer.classList.remove('hidden');
-                    if (diffAddrInput) diffAddrInput.focus();
-                }
-            }
-            queueLiveTransportCalc();
-        });
-    }
-
-    [primaryAddrInput, primaryPostcodeInput, diffAddrInput, diffPostcodeInput, diffCityInput].forEach(input => {
-        if (input) {
-            input.addEventListener('input', queueLiveTransportCalc);
-            input.addEventListener('change', queueLiveTransportCalc);
-        }
-    });
-
-    // Also close modal without issues
-    const closeBtn = document.getElementById('checkout-close');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (typeof closeCheckout === 'function') closeCheckout();
-        });
-    }
-});

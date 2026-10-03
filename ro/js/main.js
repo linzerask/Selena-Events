@@ -49,10 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Navigation links within the CURRENT language stay in current language (no redundant ro/ro/ or en/en/)
     const basePath = isDeepSubdir ? '../' : '';
     const cleanPath = window.location.pathname;
-    let initialReturnPath = cleanPath.split('/').pop() || 'index.html';
+    let initialReturnPath = (cleanPath.split('/').pop() || 'index').replace(/\.html$/i, '');
     if (isDeepSubdir) {
         const segs = cleanPath.split('/').filter(Boolean);
-        initialReturnPath = segs.slice(-2).join('/');
+        initialReturnPath = segs.slice(-2).join('/').replace(/\.html$/i, '');
     }
     const initialSearch = window.location.search || '';
     const initialShouldRedirect = initialReturnPath && !initialReturnPath.includes('login') && !initialReturnPath.includes('register');
@@ -304,10 +304,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const curNormPath = window.location.pathname.toLowerCase();
             const curIsDeep = curNormPath.includes('/service-details/') || curNormPath.includes('/shop-items/') || curNormPath.includes('/verleih-items/');
             const curCleanPath = window.location.pathname;
-            let curReturnPath = curCleanPath.split('/').pop() || 'index.html';
+            let curReturnPath = (curCleanPath.split('/').pop() || 'index').replace(/\.html$/i, '');
             if (curIsDeep) {
                 const segs = curCleanPath.split('/').filter(Boolean);
-                curReturnPath = segs.slice(-2).join('/');
+                curReturnPath = segs.slice(-2).join('/').replace(/\.html$/i, '');
             }
             const curSearch = window.location.search || '';
             const shouldRedirect = curReturnPath && !curReturnPath.includes('login') && !curReturnPath.includes('register');

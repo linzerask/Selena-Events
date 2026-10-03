@@ -64,7 +64,7 @@
     <!-- Firebase Auth logic -->
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAw_TmBCgvAwFPZkJ8RQ7_jSFB62KgQVqc",
@@ -107,17 +107,9 @@
                 btn.disabled = true;
                 btn.textContent = 'Bitte warten...';
 
-                await setPersistence(auth, browserLocalPersistence);
                 await signInWithEmailAndPassword(auth, email, password);
-                
-                // Redirect back to referring page or custom parameter
-                let targetUrl = 'customer-dashboard.html';
-                if (redirectParam) {
-                    targetUrl = decodeURIComponent(redirectParam);
-                } else if (document.referrer && document.referrer.includes(window.location.host) && !document.referrer.includes('login') && !document.referrer.includes('register')) {
-                    targetUrl = document.referrer;
-                }
-                window.location.href = targetUrl;
+                // Redirect to dashboard or custom url
+                window.location.href = redirectParam ? redirectParam : 'customer-dashboard.html';
             } catch (error) {
                 console.error("Login Error:", error);
                 

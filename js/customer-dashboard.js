@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('loyalty-tier').textContent = tier;
 
             // Fetch Orders (matching user email to catch guest orders too)
-            fetchOrders(user.uid);
+            fetchOrders(user.email);
 
             // Wishlist
             if (userData.wishlist) {
@@ -86,10 +86,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-async function fetchOrders(uid) {
+async function fetchOrders(email) {
     const container = document.getElementById('orders-container');
     try {
-        const q = query(collection(db, "orders"), where("customerUid", "==", uid));
+        const q = query(collection(db, "orders"), where("customerEmail", "==", email));
         const querySnapshot = await getDocs(q);
         
         if (querySnapshot.empty) {

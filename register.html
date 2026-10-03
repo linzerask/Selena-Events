@@ -64,6 +64,12 @@
                         <input type="text" id="referral" placeholder="Haben Sie einen Code von einem Freund?" class="w-full px-4 py-2 border border-gray-300 focus:border-gold focus:ring-0 transition-colors">
                     </div>
                     
+                    <!-- Anti-bot honeypot fields -->
+                    <div style="position: absolute; left: -9999px; opacity: 0; pointer-events: none; height: 0; width: 0; overflow: hidden;" aria-hidden="true" tabindex="-1">
+                        <input type="text" name="company_website_url_val" id="company_website_url_val" tabindex="-1" autocomplete="off">
+                        <input type="text" name="b_contact_fax_num" id="b_contact_fax_num" tabindex="-1" autocomplete="off">
+                    </div>
+                    
                     <button type="submit" id="register-btn" class="w-full bg-gold text-white font-serif tracking-widest uppercase py-3 hover:bg-black transition-colors mt-4">
                         Registrieren
                     </button>
@@ -147,6 +153,19 @@
             errorModal.classList.add('hidden');
         });
 
+        const _formMountTime = Date.now();
+
+        function isGibberishName(str) {
+            if (!str || typeof str !== 'string') return true;
+            const s = str.trim();
+            if (s.length < 2) return true;
+            // 14+ characters with no spaces and high-entropy token characters
+            if (s.length >= 14 && !s.includes(' ') && /^[a-zA-Z0-9_-]+$/.test(s)) {
+                return true;
+            }
+            return false;
+        }
+
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('name').value;
@@ -157,6 +176,27 @@
             const password = document.getElementById('password').value;
             const passwordConfirm = document.getElementById('password_confirm').value;
             const referralCode = document.getElementById('referral').value;
+
+            // Anti-bot check 1: Honeypot inputs
+            const hp1 = document.getElementById('company_website_url_val') ? document.getElementById('company_website_url_val').value : '';
+            const hp2 = document.getElementById('b_contact_fax_num') ? document.getElementById('b_contact_fax_num').value : '';
+            if (hp1 || hp2) {
+                console.warn("Spam bot detected via honeypot.");
+                return;
+            }
+
+            // Anti-bot check 2: Form submission speed (< 1.5s is automated)
+            if (Date.now() - _formMountTime < 1500) {
+                console.warn("Form submitted too quickly, possible bot.");
+                return;
+            }
+
+            // Anti-bot check 3: Gibberish name
+            if (isGibberishName(name)) {
+                errorModalMsg.textContent = 'Bitte geben Sie einen gültigen Vor- und Nachnamen ein.';
+                errorModal.classList.remove('hidden');
+                return;
+            }
             
             const btn = document.getElementById('register-btn');
 

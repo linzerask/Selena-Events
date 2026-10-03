@@ -782,6 +782,28 @@ if (checkoutBtnMain) checkoutBtnMain.addEventListener('click', openCheckout);
 if (checkoutClose) checkoutClose.addEventListener('click', closeCheckout);
 if (checkoutOverlay) checkoutOverlay.addEventListener('click', closeCheckout);
 
+const checkoutLoginBtn = document.getElementById('checkout-login-btn');
+if (checkoutLoginBtn) {
+    checkoutLoginBtn.addEventListener('click', () => {
+        const isSubdir = window.location.pathname.includes('/shop-items/') || window.location.pathname.includes('/verleih-items/');
+        const loginPath = (isSubdir ? '../' : '') + 'login.html';
+        const retUrl = isSubdir
+            ? (window.location.pathname.split('/').slice(-2).join('/') + (window.location.search || ''))
+            : (window.location.pathname.split('/').pop() + (window.location.search || ''));
+        window.location.href = loginPath + "?redirect=" + encodeURIComponent((retUrl || 'verleih').replace(/\.html$/i, ''));
+    });
+}
+
+const checkoutGuestBtn = document.getElementById('checkout-guest-btn');
+if (checkoutGuestBtn) {
+    checkoutGuestBtn.addEventListener('click', () => {
+        const authP = document.getElementById('checkout-auth-prompt') || document.getElementById('auth-prompt');
+        const persF = document.getElementById('checkout-personal-fields');
+        if (authP) authP.classList.add('hidden');
+        if (persF) persF.classList.remove('hidden');
+    });
+}
+
 if (checkoutForm) {
     checkoutForm.addEventListener('submit', async (e) => {
         e.preventDefault();

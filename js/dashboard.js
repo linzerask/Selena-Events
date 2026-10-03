@@ -243,6 +243,10 @@ document.addEventListener('userRoleLoaded', (e) => {
 
     initChat(role, user);
 
+    if (role === 'owner' || role === 'dev') {
+        initPartnersManagement();
+    }
+
     if (role === 'owner') {
         initMembersManagement();
     }
@@ -1309,82 +1313,440 @@ function loadChatMessages(channel, currentUser) {
 function initMembersManagement() {
     const list = document.getElementById('members-list');
     const saveBtn = document.getElementById('save-member-btn');
-    const uidInput = document.getElementById('member-uid');
+    const emailInput = document.getElementById('member-email') || document.getElementById('member-uid');
     const roleSelect = document.getElementById('member-role');
     const statusMsg = document.getElementById('member-save-status');
+    const dropdownContainer = document.getElementById('registered-users-dropdown');
+    const toggleDropdownBtn = document.getElementById('toggle-user-dropdown-btn');
 
-    // Show add form
-    document.getElementById('add-member-btn').addEventListener('click', () => {
-        document.getElementById('add-member-form').classList.toggle('hidden');
-    });
+    window.registeredUsersMap = window.registeredUsersMap || {};
+    window.registeredUsersByEmail = window.registeredUsersByEmail || {};
+    let latestRolesSnapshot = null;
+
+    // Helper: Detect spam bot accounts
+    function isSpamBotUser(u, uid) {
+        if (!u) return false;
+        const email = (u.email || '').toLowerCase().trim();
+        // Whitelist real / vital accounts
+        if (email === 'anaserescu28@gmail.com' || email === 'test@test.com' || email.includes('selena.events') || uid === 'CQnCa1MO44QCbmqKvnQkvu6xzfT2') {
+            return false;
+        }
+        const name = (u.name || '').trim();
+        // 1. Gibberish / token names: length >= 12 and contains mixed letters/digits/symbols without space
+        if (name.length >= 12 && (/[A-Z]/.test(name) && /[a-z]/.test(name) || /[0-9\/_-]/.test(name)) && !name.includes(' ')) {
+            return true;
+        }
+        // 2. Contains slash or special random bot syntax
+        if (name.includes('/') || name.includes('MUMGtlfH') || name.includes('NFUt') || name.includes('vxvDw')) {
+            return true;
+        }
+        // 3. Known bot names from attack
+        if (['twst', 'qoOEfdQEoRHoHGUVZhrK', 'OrZxwnunhSfPKLPDPqqAkl', 'NVebQhRjllWNLpnYhGJ', 'vktFWmWvxuAKallFsdLA', 'RIWnFCWGuymNmSeHXkSyMI', 'ONK3GjYhpuODWKCyl', 'jAdYXIYGEqrTjbCFfPgYQ', 'OSKRPvaZVIBtYPNKBy', 'MYVcZvQqThV0dBdLe', 'lxCPYjNCBsMFvSllQWSKQ', 'qqkpKOND0XnpGPDba'].some(b => name.includes(b))) {
+            return true;
+        }
+        // 4. Dot-separated spam email patterns
+        const dotCount = (email.split('@')[0] || '').split('.').length - 1;
+        if (dotCount >= 3) {
+            return true;
+        }
+        // 5. Bot email domains
+        if (email.endsWith('@valvesoftware.com') || email.endsWith('@mindshareworld.com') || email.endsWith('@kellwood.com') || email.endsWith('@wittmann-group.com') || email.endsWith('@sw-machines.com') || email.endsWith('@csdlc.org') || email === 'proftwthcv@gmail.com') {
+            return true;
+        }
+        return false;
+    }
+
+    // Render custom luxury autocomplete dropdown
+    function renderUserDropdown(filterText = '') {
+        if (!dropdownContainer) return;
+        const q = (filterText || '').toLowerCase().trim();
+        const usersList = Object.values(window.registeredUsersMap || {}).filter(u => {
+            if (isSpamBotUser(u, u.uid)) return false; // Filter out bots from suggestions!
+            if (!q) return true;
+            const name = (u.name || '').toLowerCase();
+            const email = (u.email || '').toLowerCase();
+            return name.includes(q) || email.includes(q);
+        });
+
+        if (usersList.length === 0) {
+            dropdownContainer.innerHTML = '<div class="p-3 text-xs text-gray-400 text-center">Keine registrierten Nutzer gefunden</div>';
+            dropdownContainer.classList.remove('hidden');
+            return;
+        }
+
+        let html = '';
+        usersList.forEach(u => {
+            const name = u.name || '';
+            const email = u.email || '';
+            html += `
+                <div class="user-dropdown-item px-3.5 py-2.5 hover:bg-gold/10 cursor-pointer transition-colors flex items-center justify-between" data-email="${email}">
+                    <div class="flex items-center space-x-2.5 min-w-0">
+                        <div class="w-7 h-7 rounded-full bg-gold/15 text-gold font-bold text-xs flex items-center justify-center shrink-0">
+                            ${(name || email || 'U').charAt(0).toUpperCase()}
+                        </div>
+                        <div class="min-w-0">
+                            ${name ? `<div class="text-xs font-semibold text-gray-900 truncate">${name}</div>` : ''}
+                            <div class="text-[11px] text-gray-500 truncate">${email}</div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-gold font-medium">Auswählen</span>
+                </div>
+            `;
+        });
+        dropdownContainer.innerHTML = html;
+        dropdownContainer.classList.remove('hidden');
+
+        // Click handler for selection
+        dropdownContainer.querySelectorAll('.user-dropdown-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const em = item.getAttribute('data-email');
+                if (emailInput) {
+                    emailInput.value = em;
+                }
+                dropdownContainer.classList.add('hidden');
+            });
+        });
+    }
+
+    if (emailInput && dropdownContainer) {
+        emailInput.addEventListener('focus', () => {
+            renderUserDropdown(emailInput.value);
+        });
+        emailInput.addEventListener('input', () => {
+            renderUserDropdown(emailInput.value);
+        });
+        if (toggleDropdownBtn) {
+            toggleDropdownBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (dropdownContainer.classList.contains('hidden')) {
+                    renderUserDropdown(emailInput.value);
+                } else {
+                    dropdownContainer.classList.add('hidden');
+                }
+            });
+        }
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#member-email') && !e.target.closest('#registered-users-dropdown') && !e.target.closest('#toggle-user-dropdown-btn')) {
+                dropdownContainer.classList.add('hidden');
+            }
+        });
+    }
+
+    // Listen to registered users from Firestore to auto-complete and resolve profiles
+    if (window.db && window.firebaseCollection && window.firebaseOnSnapshot) {
+        const usersQuery = window.firebaseQuery(window.firebaseCollection(window.db, 'users'));
+        window.firebaseOnSnapshot(usersQuery, (snapshot) => {
+            snapshot.forEach(docSnap => {
+                const uData = docSnap.data();
+                const userObj = { uid: docSnap.id, ...uData };
+                window.registeredUsersMap[docSnap.id] = userObj;
+                if (uData.email) {
+                    const normalizedEmail = uData.email.trim().toLowerCase();
+                    window.registeredUsersByEmail[normalizedEmail] = userObj;
+                }
+            });
+            if (latestRolesSnapshot) renderMembersList(latestRolesSnapshot);
+        }, (err) => {
+            console.warn("Could not load users list:", err);
+        });
+    }
+
+    // Clean spam users button
+    const cleanSpamBtn = document.getElementById('clean-spam-users-btn');
+    if (cleanSpamBtn) {
+        cleanSpamBtn.addEventListener('click', async () => {
+            if (!window.registeredUsersMap || Object.keys(window.registeredUsersMap).length === 0) {
+                return window.showCustomAlert('Info', 'Keine registrierten Nutzerdaten geladen.');
+            }
+
+            // Detect bot accounts
+            const spamUids = [];
+            const spamDetails = [];
+            
+            for (const [uid, u] of Object.entries(window.registeredUsersMap)) {
+                if (isSpamBotUser(u, uid)) {
+                    spamUids.push(uid);
+                    const email = u.email || 'Keine E-Mail';
+                    const name = u.name || 'Ohne Name';
+                    spamDetails.push(`${name} (${email})`);
+                }
+            }
+
+            if (spamUids.length === 0) {
+                return window.showCustomAlert('Spam-Bereinigung', 'Es wurden keine gefälschten Bot-Konten in der Datenbank gefunden.');
+            }
+
+            const confirmMsg = `Es wurden ${spamUids.length} Spam-Bot-Konten identifiziert:\n\n` + 
+                spamDetails.slice(0, 6).join('\n') + 
+                (spamDetails.length > 6 ? `\n...und ${spamDetails.length - 6} weitere` : '') + 
+                `\n\nMöchten Sie diese ${spamUids.length} Bot-Konten jetzt dauerhaft löschen?`;
+
+            const runCleanup = async () => {
+                try {
+                    cleanSpamBtn.disabled = true;
+                    let deletedCount = 0;
+                    for (const uid of spamUids) {
+                        try {
+                            if (window.firebaseDeleteDoc && window.firebaseDoc && window.db) {
+                                await window.firebaseDeleteDoc(window.firebaseDoc(window.db, 'users', uid));
+                                try {
+                                    await window.firebaseDeleteDoc(window.firebaseDoc(window.db, 'user_roles', uid));
+                                } catch(e) {}
+                                delete window.registeredUsersMap[uid];
+                                deletedCount++;
+                            }
+                        } catch(err) {
+                            console.warn("Could not delete spam user:", uid, err);
+                        }
+                    }
+                    if (dropdownContainer) dropdownContainer.classList.add('hidden');
+                    if (window.showCustomAlert) {
+                        window.showCustomAlert('Erfolg', `${deletedCount} Spam-Bot-Konten wurden erfolgreich gelöscht.`);
+                    } else {
+                        alert(`${deletedCount} Spam-Bot-Konten wurden erfolgreich gelöscht.`);
+                    }
+                } catch(e) {
+                    if (window.showCustomAlert) {
+                        window.showCustomAlert('Fehler', 'Fehler beim Löschen: ' + e.message);
+                    } else {
+                        alert('Fehler beim Löschen: ' + e.message);
+                    }
+                } finally {
+                    cleanSpamBtn.disabled = false;
+                }
+            };
+
+            if (typeof window.showCustomConfirm === 'function') {
+                window.showCustomConfirm('Spam-Konten löschen', confirmMsg, runCleanup);
+            } else {
+                if (confirm(confirmMsg)) {
+                    await runCleanup();
+                }
+            }
+        });
+    }
+
+    // Show add form toggle
+    const toggleBtn = document.getElementById('add-member-btn');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            const formEl = document.getElementById('add-member-form');
+            if (formEl) formEl.classList.toggle('hidden');
+        });
+    }
 
     // Save
-    saveBtn.addEventListener('click', async () => {
-        const uid = uidInput.value.trim();
-        const role = roleSelect.value;
-        if (!uid) return window.showCustomAlert('Fehler', 'Bitte UID eingeben.');
+    if (saveBtn && emailInput && roleSelect) {
+        saveBtn.addEventListener('click', async () => {
+            const rawVal = emailInput.value.trim();
+            const role = roleSelect.value;
+            if (!rawVal) return window.showCustomAlert('Fehler', 'Bitte eine E-Mail-Adresse eingeben oder auswählen.');
 
-        try {
-            saveBtn.disabled = true;
-            statusMsg.textContent = 'Speichere...';
-            statusMsg.classList.remove('hidden', 'text-red-600', 'text-green-600');
-            
-            await window.firebaseSetDoc(window.firebaseDoc(window.db, 'user_roles', uid), {
-                role: role,
-                updatedAt: window.firebaseServerTimestamp()
-            }, { merge: true });
+            try {
+                saveBtn.disabled = true;
+                if (statusMsg) {
+                    statusMsg.textContent = 'Speichere...';
+                    statusMsg.classList.remove('hidden', 'text-red-600', 'text-green-600');
+                }
+                
+                let targetUser = window.registeredUsersByEmail[rawVal.toLowerCase()];
 
-            statusMsg.textContent = 'Erfolgreich gespeichert!';
-            statusMsg.classList.add('text-green-600');
-            uidInput.value = '';
-        } catch(e) {
-            statusMsg.textContent = 'Fehler: ' + e.message;
-            statusMsg.classList.add('text-red-600');
-        } finally {
-            saveBtn.disabled = false;
-        }
-    });
+                // If not cached, do a direct lookup in Firestore users collection
+                if (!targetUser && window.firebaseGetDocs && window.firebaseQuery && window.firebaseWhere) {
+                    const uQ = window.firebaseQuery(window.firebaseCollection(window.db, 'users'), window.firebaseWhere('email', '==', rawVal));
+                    const uSnap = await window.firebaseGetDocs(uQ);
+                    if (!uSnap.empty) {
+                        targetUser = { uid: uSnap.docs[0].id, ...uSnap.docs[0].data() };
+                    }
+                }
 
-    // List
-    const q = window.firebaseQuery(window.firebaseCollection(window.db, 'user_roles'));
-    window.firebaseOnSnapshot(q, (snapshot) => {
+                // If still not found by email, check if rawVal is a valid UID in registeredUsersMap
+                if (!targetUser && window.registeredUsersMap && window.registeredUsersMap[rawVal]) {
+                    targetUser = window.registeredUsersMap[rawVal];
+                }
+
+                let targetUid = targetUser ? targetUser.uid : null;
+                let userEmail = targetUser ? targetUser.email : rawVal;
+                let userName = targetUser ? (targetUser.name || '') : '';
+
+                if (!targetUid) {
+                    // Check if input looks like a raw Firebase UID (20+ chars, no @)
+                    if (rawVal.length >= 20 && !rawVal.includes('@')) {
+                        targetUid = rawVal;
+                    } else {
+                        throw new Error(`Kein registriertes Konto mit der E-Mail "${rawVal}" gefunden. Bitte bitten Sie das Teammitglied, sich zuerst kurz auf selena.events/register zu registrieren.`);
+                    }
+                }
+
+                await window.firebaseSetDoc(window.firebaseDoc(window.db, 'user_roles', targetUid), {
+                    role: role,
+                    email: userEmail,
+                    name: userName,
+                    updatedAt: window.firebaseServerTimestamp()
+                }, { merge: true });
+
+                // If an old broken doc existed with email as doc ID, clean it up
+                if (userEmail && userEmail.includes('@') && userEmail !== targetUid) {
+                    try {
+                        await window.firebaseDeleteDoc(window.firebaseDoc(window.db, 'user_roles', userEmail));
+                    } catch(delErr) {}
+                }
+
+                if (statusMsg) {
+                    statusMsg.textContent = `Erfolgreich gespeichert! Rolle "${role}" wurde vergeben.`;
+                    statusMsg.classList.add('text-green-600');
+                }
+                window.showCustomAlert('Erfolg', `Rolle "${role}" wurde an ${userName || userEmail} vergeben.`);
+                emailInput.value = '';
+            } catch(e) {
+                if (statusMsg) {
+                    statusMsg.textContent = 'Fehler: ' + e.message;
+                    statusMsg.classList.add('text-red-600');
+                }
+                window.showCustomAlert('Hinweis', e.message);
+            } finally {
+                saveBtn.disabled = false;
+            }
+        });
+    }
+
+    function renderMembersList(snapshot) {
+        if (!list) return;
         let html = '';
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const prof = (window.chatUserProfiles && window.chatUserProfiles[doc.id]) || {};
-            const userName = prof.name || data.name || '';
-            const userEmail = prof.email || data.email || '';
+        let count = 0;
+
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const role = data.role || 'customer';
             
+            // Skip non-staff customer entries
+            if (role === 'customer') return;
+
+            count++;
+            const docId = docSnap.id;
+            const prof = (window.registeredUsersMap && window.registeredUsersMap[docId]) || (window.registeredUsersByEmail && window.registeredUsersByEmail[(data.email || docId).toLowerCase()]) || {};
+            const userName = data.name || prof.name || '';
+            const userEmail = data.email || prof.email || (docId.includes('@') ? docId : 'Keine E-Mail hinterlegt');
+
+            const identifier = userName ? `${userName} (${userEmail})` : userEmail;
+
             html += `
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        ${userName ? `<div class="font-semibold text-gray-900">${userName}</div>` : ''}
-                        <div class="text-xs text-gray-600">${userEmail || 'Keine E-Mail hinterlegt'}</div>
-                        <div class="font-mono text-[11px] text-gray-400 mt-0.5">UID: ${doc.id}</div>
+                <tr class="hover:bg-gray-50/75 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="h-9 w-9 rounded-full bg-gold/10 text-gold flex items-center justify-center font-bold text-sm mr-3 uppercase shrink-0 border border-gold/20">
+                                ${(userName || userEmail || 'U').charAt(0)}
+                            </div>
+                            <div>
+                                ${userName ? `<div class="font-semibold text-gray-900 text-sm">${userName}</div>` : ''}
+                                <div class="text-xs text-gray-600">${userEmail}</div>
+                                <div class="font-mono text-[10px] text-gray-400 mt-0.5">UID: ${docId}</div>
+                            </div>
+                        </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 capitalize">
-                            ${data.role}
-                        </span>
+                        <select onchange="window.updateMemberRole('${docId}', this.value, '${identifier.replace(/'/g, "\\'")}')" class="text-xs font-semibold rounded-lg border-gray-300 shadow-xs focus:border-gold focus:ring-gold py-1.5 px-2.5 bg-white border cursor-pointer text-gray-800">
+                            <option value="volunteer" ${role === 'volunteer' ? 'selected' : ''}>🟢 Volunteer (Helfer)</option>
+                            <option value="dev" ${role === 'dev' ? 'selected' : ''}>🔵 Developer</option>
+                            <option value="owner" ${role === 'owner' ? 'selected' : ''}>👑 Owner</option>
+                            <option value="customer" ${role === 'customer' ? 'selected' : ''}>⚪ Kunde (Zugriff entziehen)</option>
+                        </select>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <button onclick="deleteMember('${doc.id}')" class="text-red-600 hover:text-red-900 font-medium transition-colors">Löschen</button>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                        <button onclick="window.deleteMember('${docId}', '${identifier.replace(/'/g, "\\'")}')" class="text-red-600 hover:text-red-800 font-medium text-xs bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-md transition-colors shadow-xs">
+                            Zugriff entfernen
+                        </button>
                     </td>
                 </tr>
             `;
         });
-        if(snapshot.empty) html = '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">Keine Mitglieder gefunden.</td></tr>';
-        list.innerHTML = html;
-    }, (error) => {
-        console.error("Members Snapshot error:", error);
-        list.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-red-500">Zugriff verweigert. Bitte Firebase Security Rules aktualisieren.</td></tr>';
-    });
 
-    window.deleteMember = async function(uid) {
-        window.showCustomConfirm('Zugriff entfernen', `Möchten Sie den Zugriff für UID ${uid} wirklich entfernen?`, async () => {
-            await window.firebaseSetDoc(window.firebaseDoc(window.db, 'user_roles', uid), { role: 'customer' }, { merge: true });
-            window.showCustomAlert('Erfolg', 'Der Zugriff wurde erfolgreich entfernt.');
+        if (count === 0) {
+            html = '<tr><td colspan="3" class="px-6 py-8 text-center text-gray-500">Keine Teammitglieder gefunden.</td></tr>';
+        }
+        list.innerHTML = html;
+    }
+
+    // List Listener
+    if (window.db && window.firebaseCollection && window.firebaseOnSnapshot) {
+        const q = window.firebaseQuery(window.firebaseCollection(window.db, 'user_roles'));
+        window.firebaseOnSnapshot(q, (snapshot) => {
+            latestRolesSnapshot = snapshot;
+            renderMembersList(snapshot);
+        }, (error) => {
+            console.error("Members Snapshot error:", error);
+            if (list) list.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-red-500">Zugriff verweigert. Bitte Berechtigungen prüfen.</td></tr>';
         });
+    }
+
+    window.updateMemberRole = async function(docId, newRole, identifier) {
+        if (newRole === 'customer') {
+            return window.deleteMember(docId, identifier);
+        }
+        try {
+            if (docId.includes('@')) {
+                await window.firebaseSetDoc(window.firebaseDoc(window.db, 'user_roles', docId), {
+                    role: newRole,
+                    updatedAt: window.firebaseServerTimestamp()
+                }, { merge: true });
+                const targetUser = window.registeredUsersByEmail && window.registeredUsersByEmail[docId.toLowerCase()];
+                if (targetUser && targetUser.uid) {
+                    await window.firebaseSetDoc(window.firebaseDoc(window.db, 'user_roles', targetUser.uid), {
+                        role: newRole,
+                        email: targetUser.email || docId,
+                        name: targetUser.name || '',
+                        updatedAt: window.firebaseServerTimestamp()
+                    }, { merge: true });
+                }
+            } else {
+                await window.firebaseSetDoc(window.firebaseDoc(window.db, 'user_roles', docId), {
+                    role: newRole,
+                    updatedAt: window.firebaseServerTimestamp()
+                }, { merge: true });
+            }
+            if (window.showCustomAlert) {
+                window.showCustomAlert('Erfolg', `Rolle für "${identifier || docId}" wurde erfolgreich auf "${newRole}" aktualisiert.`);
+            } else {
+                alert(`Rolle für "${identifier || docId}" wurde erfolgreich auf "${newRole}" aktualisiert.`);
+            }
+        } catch(e) {
+            if (window.showCustomAlert) {
+                window.showCustomAlert('Fehler', 'Fehler beim Ändern der Rolle: ' + e.message);
+            } else {
+                alert('Fehler beim Ändern der Rolle: ' + e.message);
+            }
+        }
+    };
+
+    window.deleteMember = async function(docId, identifier) {
+        const doDelete = async () => {
+            try {
+                if (docId.includes('@')) {
+                    await window.firebaseDeleteDoc(window.firebaseDoc(window.db, 'user_roles', docId));
+                } else {
+                    await window.firebaseSetDoc(window.firebaseDoc(window.db, 'user_roles', docId), { role: 'customer' }, { merge: true });
+                }
+                if (window.showCustomAlert) {
+                    window.showCustomAlert('Erfolg', 'Der Zugriff wurde erfolgreich entfernt.');
+                } else {
+                    alert('Der Zugriff wurde erfolgreich entfernt.');
+                }
+            } catch(e) {
+                if (window.showCustomAlert) {
+                    window.showCustomAlert('Fehler', 'Fehler beim Entfernen: ' + e.message);
+                } else {
+                    alert('Fehler beim Entfernen: ' + e.message);
+                }
+            }
+        };
+
+        if (typeof window.showCustomConfirm === 'function') {
+            window.showCustomConfirm('Zugriff entfernen', `Möchten Sie die Berechtigung für "${identifier || docId}" wirklich entfernen?`, doDelete);
+        } else {
+            if (confirm(`Möchten Sie die Berechtigung für "${identifier || docId}" wirklich entfernen?`)) {
+                await doDelete();
+            }
+        }
     };
 }
 
@@ -3081,4 +3443,427 @@ window.resetMessageFilters = function() {
 
     window.renderFilteredMessages();
 };
+
+// === PARTNERS & SPONSORS MANAGEMENT ===
+window.currentPartnersData = [];
+
+window.openAddPartnerModal = function() {
+    const modal = document.getElementById('partner-modal');
+    const form = document.getElementById('partner-form');
+    const idInput = document.getElementById('partner-id');
+    const nameInput = document.getElementById('partner-name');
+    const websiteInput = document.getElementById('partner-website');
+    const orderInput = document.getElementById('partner-order');
+    const visibleCheck = document.getElementById('partner-visible');
+    const fileInput = document.getElementById('partner-image-file');
+    const previewContainer = document.getElementById('partner-preview-container');
+    const autoCenterBtn = document.getElementById('partner-autocenter-btn');
+    const previewImg = document.getElementById('partner-preview-img');
+
+    if (form) form.reset();
+    if (idInput) idInput.value = '';
+    if (nameInput) nameInput.value = '';
+    if (websiteInput) websiteInput.value = '';
+    if (fileInput) fileInput.value = '';
+    if (previewImg) previewImg.src = '';
+    if (previewContainer) previewContainer.classList.add('hidden');
+    if (autoCenterBtn) autoCenterBtn.classList.add('hidden');
+    window._partnerSelectedBlob = null;
+    window._partnerExistingLogoUrl = '';
+
+    const titleEl = document.getElementById('partner-modal-title');
+    if (titleEl) titleEl.textContent = 'Neuen Partner hinzufügen';
+    if (orderInput) orderInput.value = (window.currentPartnersData ? window.currentPartnersData.length + 1 : 1);
+    if (visibleCheck) visibleCheck.checked = true;
+    
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+    }
+};
+
+window.closePartnerModal = function() {
+    const modal = document.getElementById('partner-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+    window._partnerSelectedBlob = null;
+    window._partnerExistingLogoUrl = '';
+};
+
+window.editPartner = function(id) {
+    const p = (window.currentPartnersData || []).find(x => x.id === id);
+    if (!p) {
+        console.warn("Partner not found for ID:", id);
+        return;
+    }
+    const modal = document.getElementById('partner-modal');
+    const form = document.getElementById('partner-form');
+    const idInput = document.getElementById('partner-id');
+    const nameInput = document.getElementById('partner-name');
+    const websiteInput = document.getElementById('partner-website');
+    const orderInput = document.getElementById('partner-order');
+    const visibleCheck = document.getElementById('partner-visible');
+    const previewContainer = document.getElementById('partner-preview-container');
+    const previewImg = document.getElementById('partner-preview-img');
+    const aspectBadge = document.getElementById('partner-aspect-badge');
+    const dimInfo = document.getElementById('partner-dim-info');
+    const autoCenterBtn = document.getElementById('partner-autocenter-btn');
+
+    if (form) form.reset();
+    if (idInput) idInput.value = p.id;
+    if (nameInput) nameInput.value = p.name || '';
+    if (websiteInput) websiteInput.value = p.websiteUrl || '';
+    if (orderInput) orderInput.value = p.order || 1;
+    if (visibleCheck) visibleCheck.checked = p.visible !== false;
+    window._partnerExistingLogoUrl = p.logoUrl || '';
+    window._partnerSelectedBlob = null;
+
+    if (window._partnerExistingLogoUrl && previewImg) {
+        previewImg.src = window._partnerExistingLogoUrl;
+        if (previewContainer) previewContainer.classList.remove('hidden');
+        if (aspectBadge) {
+            aspectBadge.className = 'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-gray-100 text-gray-800 mb-1';
+            aspectBadge.textContent = 'Aktuelles Logo';
+        }
+        if (dimInfo) dimInfo.textContent = 'Vorhandenes Bild';
+        if (autoCenterBtn) autoCenterBtn.classList.add('hidden');
+    }
+
+    const titleEl = document.getElementById('partner-modal-title');
+    if (titleEl) titleEl.textContent = 'Partner bearbeiten';
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+    }
+};
+
+window.togglePartnerVisibility = async function(id, newVisible) {
+    if (!window.db || !window.firebaseSetDoc || !window.firebaseDoc) {
+        console.error("Firebase not initialized for togglePartnerVisibility");
+        return;
+    }
+    try {
+        await window.firebaseSetDoc(window.firebaseDoc(window.db, 'partners', id), {
+            visible: newVisible,
+            updatedAt: window.firebaseServerTimestamp()
+        }, { merge: true });
+    } catch(e) {
+        console.error("Error toggling partner visibility:", e);
+        if (window.showCustomAlert) {
+            window.showCustomAlert('Fehler', 'Fehler beim Ändern des Status: ' + e.message);
+        } else {
+            alert('Fehler beim Ändern des Status: ' + e.message);
+        }
+    }
+};
+
+window.deletePartner = function(id, name) {
+    const doDelete = async () => {
+        try {
+            if (window.db && window.firebaseDeleteDoc && window.firebaseDoc) {
+                await window.firebaseDeleteDoc(window.firebaseDoc(window.db, 'partners', id));
+                if (window.showCustomAlert) {
+                    window.showCustomAlert('Erfolg', 'Partner wurde erfolgreich gelöscht.');
+                } else {
+                    alert('Partner wurde erfolgreich gelöscht.');
+                }
+            }
+        } catch(e) {
+            console.error("Error deleting partner:", e);
+            if (window.showCustomAlert) {
+                window.showCustomAlert('Fehler', 'Fehler beim Löschen: ' + e.message);
+            } else {
+                alert('Fehler beim Löschen: ' + e.message);
+            }
+        }
+    };
+
+    if (typeof window.showCustomConfirm === 'function') {
+        window.showCustomConfirm('Partner löschen', `Möchten Sie den Partner "${name || id}" wirklich dauerhaft entfernen?`, doDelete);
+    } else {
+        if (confirm(`Möchten Sie den Partner "${name || id}" wirklich dauerhaft entfernen?`)) {
+            doDelete();
+        }
+    }
+};
+
+function initPartnersManagement() {
+    const grid = document.getElementById('partners-grid');
+    const addBtn = document.getElementById('add-partner-btn');
+    const modal = document.getElementById('partner-modal');
+    const form = document.getElementById('partner-form');
+    const closeBtn = document.getElementById('close-partner-modal');
+    const cancelBtn = document.getElementById('cancel-partner-modal');
+    const saveBtn = document.getElementById('save-partner-btn');
+    const saveText = document.getElementById('save-partner-text');
+    const saveSpinner = document.getElementById('save-partner-spinner');
+
+    const idInput = document.getElementById('partner-id');
+    const nameInput = document.getElementById('partner-name');
+    const websiteInput = document.getElementById('partner-website');
+    const orderInput = document.getElementById('partner-order');
+    const visibleCheck = document.getElementById('partner-visible');
+    const fileInput = document.getElementById('partner-image-file');
+
+    const previewContainer = document.getElementById('partner-preview-container');
+    const previewImg = document.getElementById('partner-preview-img');
+    const aspectBadge = document.getElementById('partner-aspect-badge');
+    const dimInfo = document.getElementById('partner-dim-info');
+    const autoCenterBtn = document.getElementById('partner-autocenter-btn');
+
+    if (!grid) return;
+
+    // Default seed if collection is completely empty
+    const defaultPartners = [
+        { id: 'partner-1', name: 'Honest Sales', logoUrl: 'assets/1.png', websiteUrl: '', order: 1, visible: true },
+        { id: 'partner-2', name: 'AnonymCreator Digitalstudio', logoUrl: 'assets/2.png', websiteUrl: 'https://anonymcreator.online', order: 2, visible: true },
+        { id: 'partner-3', name: 'Selena Events', logoUrl: 'assets/3.png', websiteUrl: 'https://selena.events', order: 3, visible: true },
+        { id: 'partner-4', name: 'Cadre ART Photography', logoUrl: 'assets/4.png', websiteUrl: '', order: 4, visible: true },
+        { id: 'partner-5', name: 'Restaurant im Volkshaus Ebelsberg', logoUrl: 'assets/5.png', websiteUrl: '', order: 5, visible: true }
+    ];
+
+    // Seed default partners once if collection empty
+    async function checkAndSeedDefaults() {
+        if (!window.db || !window.firebaseGetDocs || !window.firebaseCollection || !window.firebaseSetDoc) return;
+        try {
+            const snap = await window.firebaseGetDocs(window.firebaseCollection(window.db, 'partners'));
+            if (snap.empty) {
+                for (const p of defaultPartners) {
+                    await window.firebaseSetDoc(window.firebaseDoc(window.db, 'partners', p.id), {
+                        ...p,
+                        createdAt: window.firebaseServerTimestamp()
+                    });
+                }
+            }
+        } catch(e) {
+            console.warn("Could not seed default partners:", e);
+        }
+    }
+    checkAndSeedDefaults();
+
+    // Render partners grid
+    function renderPartners(partners) {
+        window.currentPartnersData = partners;
+        if (!grid) return;
+        if (partners.length === 0) {
+            grid.innerHTML = `
+                <div class="col-span-full py-12 text-center bg-white rounded-xl border border-gray-100 p-8 shadow-xs">
+                    <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    <p class="text-sm font-semibold text-gray-700">Noch keine Partner vorhanden</p>
+                    <p class="text-xs text-gray-400 mt-1">Klicken Sie oben rechts auf "Neuen Partner hinzufügen", um das erste Logo hochzuladen.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        partners.forEach(p => {
+            const hasLink = p.websiteUrl && p.websiteUrl.trim().length > 0;
+            const isVisible = p.visible !== false;
+            const safeName = (p.name || '').replace(/'/g, "\\'");
+
+            html += `
+                <div class="bg-white rounded-xl border border-gray-100 shadow-xs hover:shadow-md transition-shadow p-5 flex flex-col justify-between relative group ${!isVisible ? 'opacity-60 bg-gray-50/70' : ''}">
+                    <!-- Order Badge & Visibility -->
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-200">
+                            Pos. ${p.order || 1}
+                        </span>
+                        <button type="button" onclick="window.togglePartnerVisibility('${p.id}', ${!isVisible})" class="text-[11px] font-semibold px-2 py-0.5 rounded-full transition-colors cursor-pointer ${isVisible ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100' : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'}" title="Klicken zum Ein-/Ausblenden">
+                            ${isVisible ? '● Aktiv' : '○ Versteckt'}
+                        </button>
+                    </div>
+
+                    <!-- Logo Box (Checkered transparent preview) -->
+                    <div class="w-full h-32 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:8px_8px] bg-white border border-gray-100 rounded-lg flex items-center justify-center p-3 mb-4 overflow-hidden">
+                        <img src="${p.logoUrl}" alt="${p.name}" class="max-h-full max-w-full object-contain transition-transform group-hover:scale-105 duration-300 drop-shadow-xs" onerror="this.src='assets/logo_dark.png'">
+                    </div>
+
+                    <!-- Details -->
+                    <div class="mb-4">
+                        <h4 class="font-semibold text-gray-900 text-sm truncate" title="${p.name}">${p.name}</h4>
+                        ${hasLink ? `
+                            <a href="${p.websiteUrl}" target="_blank" rel="noopener noreferrer" class="text-xs text-gold hover:underline truncate flex items-center gap-1 mt-0.5">
+                                <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                <span class="truncate">${p.websiteUrl.replace(/^https?:\/\//, '')}</span>
+                            </a>
+                        ` : `
+                            <span class="text-[11px] text-gray-400 italic">Keine URL hinterlegt</span>
+                        `}
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-2 pt-3 border-t border-gray-100">
+                        <button type="button" onclick="window.editPartner('${p.id}')" class="flex-1 bg-gray-50 hover:bg-gold/10 hover:text-gold text-gray-700 text-xs font-semibold py-1.5 px-3 rounded-lg border border-gray-200 transition-colors flex items-center justify-center gap-1 cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            Bearbeiten
+                        </button>
+                        <button type="button" onclick="window.deletePartner('${p.id}', '${safeName}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold py-1.5 px-2.5 rounded-lg border border-red-200 transition-colors cursor-pointer" title="Partner löschen">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        grid.innerHTML = html;
+    }
+
+    // Realtime Listener
+    if (window.db && window.firebaseCollection && window.firebaseOnSnapshot) {
+        const q = window.firebaseQuery(window.firebaseCollection(window.db, 'partners'));
+        window.firebaseOnSnapshot(q, (snapshot) => {
+            const list = [];
+            snapshot.forEach(docSnap => {
+                list.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            list.sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+            renderPartners(list);
+        }, (err) => {
+            console.error("Partners snapshot error:", err);
+            if (grid) grid.innerHTML = '<div class="col-span-full py-8 text-center text-red-500">Fehler beim Laden der Partner.</div>';
+        });
+    }
+
+    // Attach Add Button
+    if (addBtn) {
+        addBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.openAddPartnerModal();
+        });
+    }
+
+    if (closeBtn) closeBtn.addEventListener('click', window.closePartnerModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', window.closePartnerModal);
+
+    // Image change & Aspect ratio check & Auto-centering tool
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const img = new Image();
+                img.onload = () => {
+                    const w = img.naturalWidth || img.width;
+                    const h = img.naturalHeight || img.height;
+                    const isSquare = Math.abs(w - h) <= 2;
+
+                    previewImg.src = evt.target.result;
+                    previewContainer.classList.remove('hidden');
+                    dimInfo.textContent = `${w} × ${h} Pixel`;
+
+                    if (isSquare) {
+                        aspectBadge.className = 'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800 mb-1';
+                        aspectBadge.textContent = '1:1 Quadratisch ✓';
+                        autoCenterBtn.classList.add('hidden');
+                        window._partnerSelectedBlob = file;
+                    } else {
+                        aspectBadge.className = 'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-800 mb-1';
+                        aspectBadge.textContent = 'Nicht 1:1 Quadratisch (Empfohlen anzupassen)';
+                        autoCenterBtn.classList.remove('hidden');
+                        window._partnerSelectedBlob = file;
+
+                        // Click to auto-center onto a 1:1 transparent square canvas
+                        autoCenterBtn.onclick = () => {
+                            const maxDim = Math.max(w, h, 400);
+                            const canvas = document.createElement('canvas');
+                            canvas.width = maxDim;
+                            canvas.height = maxDim;
+                            const ctx = canvas.getContext('2d');
+                            ctx.clearRect(0, 0, maxDim, maxDim);
+
+                            // Calculate centered position
+                            const x = (maxDim - w) / 2;
+                            const y = (maxDim - h) / 2;
+                            ctx.drawImage(img, x, y, w, h);
+
+                            canvas.toBlob((blob) => {
+                                window._partnerSelectedBlob = new File([blob], file.name.replace(/\.[^/.]+$/, "") + "_square.png", { type: 'image/png' });
+                                previewImg.src = canvas.toDataURL('image/png');
+                                dimInfo.textContent = `${maxDim} × ${maxDim} Pixel (1:1 zentriert)`;
+                                aspectBadge.className = 'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800 mb-1';
+                                aspectBadge.textContent = '1:1 Quadratisch zentriert ✓';
+                                autoCenterBtn.classList.add('hidden');
+                            }, 'image/png');
+                        };
+                    }
+                };
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Save Form
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = nameInput.value.trim();
+            const websiteUrl = websiteInput.value.trim();
+            const order = Number(orderInput.value) || 1;
+            const visible = visibleCheck.checked;
+            const docId = idInput.value || `partner-${Date.now()}`;
+
+            if (!name) {
+                if (window.showCustomAlert) return window.showCustomAlert('Fehler', 'Bitte geben Sie einen Partnernamen ein.');
+                return alert('Bitte geben Sie einen Partnernamen ein.');
+            }
+            if (!window._partnerExistingLogoUrl && !window._partnerSelectedBlob && (!fileInput.files || fileInput.files.length === 0)) {
+                if (window.showCustomAlert) return window.showCustomAlert('Fehler', 'Bitte wählen Sie eine Logo-Datei aus.');
+                return alert('Bitte wählen Sie eine Logo-Datei aus.');
+            }
+
+            try {
+                if (saveBtn) saveBtn.disabled = true;
+                if (saveText) saveText.textContent = 'Wird gespeichert...';
+                if (saveSpinner) saveSpinner.classList.remove('hidden');
+
+                let finalLogoUrl = window._partnerExistingLogoUrl;
+
+                // If new file chosen or converted
+                const fileToUpload = window._partnerSelectedBlob || (fileInput.files ? fileInput.files[0] : null);
+                if (fileToUpload && window.firebaseUploadBytes && window.firebaseGetDownloadURL && window.storage && window.firebaseRef) {
+                    const cleanFileName = fileToUpload.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                    const fileRef = window.firebaseRef(window.storage, `partners/${Date.now()}_${cleanFileName}`);
+                    await window.firebaseUploadBytes(fileRef, fileToUpload);
+                    finalLogoUrl = await window.firebaseGetDownloadURL(fileRef);
+                }
+
+                if (!finalLogoUrl) {
+                    throw new Error('Logo-Upload fehlgeschlagen. Bitte prüfen Sie Ihre Verbindung.');
+                }
+
+                await window.firebaseSetDoc(window.firebaseDoc(window.db, 'partners', docId), {
+                    name,
+                    websiteUrl,
+                    logoUrl: finalLogoUrl,
+                    order,
+                    visible,
+                    updatedAt: window.firebaseServerTimestamp()
+                }, { merge: true });
+
+                window.closePartnerModal();
+                if (window.showCustomAlert) {
+                    window.showCustomAlert('Erfolg', `Partner "${name}" wurde erfolgreich gespeichert!`);
+                } else {
+                    alert(`Partner "${name}" wurde erfolgreich gespeichert!`);
+                }
+            } catch(err) {
+                console.error("Error saving partner:", err);
+                if (window.showCustomAlert) {
+                    window.showCustomAlert('Fehler', 'Fehler beim Speichern: ' + err.message);
+                } else {
+                    alert('Fehler beim Speichern: ' + err.message);
+                }
+            } finally {
+                if (saveBtn) saveBtn.disabled = false;
+                if (saveText) saveText.textContent = 'Speichern';
+                if (saveSpinner) saveSpinner.classList.add('hidden');
+            }
+        });
+    }
+}
 

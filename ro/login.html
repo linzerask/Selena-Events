@@ -53,7 +53,7 @@
             <h3 class="text-xl font-serif mb-2 text-gray-900">Autentificare eșuată</h3>
             <p id="error-modal-msg" class="text-gray-500 mb-6">Te rugăm să îți verifici e-mailul și parola.</p>
             <button id="error-modal-close" class="w-full bg-black text-white font-serif tracking-widest uppercase py-3 hover:bg-gold transition-colors rounded">
-                Erneut versuchen
+                Încearcă din nou
             </button>
         </div>
     </div>
@@ -78,6 +78,15 @@
         const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
         const auth = getAuth(app);
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectParam = urlParams.get('redirect');
+        if (redirectParam) {
+            const registerLink = document.querySelector('a[href="register.html"]');
+            if (registerLink) {
+                registerLink.href = `register.html?redirect=${encodeURIComponent(redirectParam)}`;
+            }
+        }
+
         const errorModal = document.getElementById('error-modal');
         const errorModalMsg = document.getElementById('error-modal-msg');
         
@@ -98,9 +107,17 @@
                 btn.disabled = true;
                 btn.textContent = 'Te rugăm să aștepți...';
 
+                await setPersistence(auth, browserLocalPersistence);
                 await signInWithEmailAndPassword(auth, email, password);
-                // Redirect to dashboard
-                window.location.href = 'customer-dashboard.html';
+                
+                // Redirect to dashboard or return page
+                let targetUrl = 'customer-dashboard.html';
+                if (redirectParam) {
+                    targetUrl = decodeURIComponent(redirectParam);
+                } else if (document.referrer && document.referrer.includes(window.location.host) && !document.referrer.includes('login') && !document.referrer.includes('register')) {
+                    targetUrl = document.referrer;
+                }
+                window.location.href = targetUrl;
             } catch (error) {
                 console.error("Login Error:", error);
                 

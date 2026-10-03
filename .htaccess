@@ -10,7 +10,7 @@ RewriteBase /
 RewriteRule ^kontakt/?$ contact.html [NC,L]
 
 # 1. Externe Umleitung: .html aus der URL entfernen (z.B. /seite.html -> /seite)
-RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([^\ ]+)\.html
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([^?\ ]+)\.html [NC]
 RewriteRule ^/?(.*)\.html$ /$1 [L,R=301]
 
 # 2. Interne Verarbeitung: /seite -> /seite.html laden
