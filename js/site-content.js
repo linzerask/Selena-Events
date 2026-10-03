@@ -91,12 +91,13 @@ const db = getFirestore(app);
                                     imgUrl = prefix + imgUrl;
                                 }
                                 const imgTag = `<img src="${imgUrl}" class="h-40 md:h-48 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer drop-shadow-sm object-contain" alt="${p.name || 'Partner'}">`;
-                                if (p.url && p.url.trim() !== '') {
-                                    let href = p.url.trim();
+                                const rawUrl = (p.websiteUrl || p.url || '').trim();
+                                if (rawUrl !== '') {
+                                    let href = rawUrl;
                                     if (!href.startsWith('http://') && !href.startsWith('https://')) {
                                         href = 'https://' + href;
                                     }
-                                    return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="inline-block hover:scale-105 transition-transform" title="${p.name || ''}">${imgTag}</a>`;
+                                    return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="inline-block hover:scale-105 transition-transform cursor-pointer" title="${p.name || ''}">${imgTag}</a>`;
                                 }
                                 return imgTag;
                             }).join('') +
