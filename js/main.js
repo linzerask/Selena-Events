@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const mediaScript = document.createElement('script'); 
         mediaScript.type = 'module'; 
         mediaScript.dataset.siteContent = '1'; 
-        mediaScript.src = scriptPrefix + 'js/site-content.js'; 
+        mediaScript.src = scriptPrefix + 'js/site-content.js?v=2.0'; 
         document.body.appendChild(mediaScript); 
     }
 

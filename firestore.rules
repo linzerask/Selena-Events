@@ -45,10 +45,10 @@ service cloud.firestore {
       }
     }
     match /stock_movements/{id} { allow read, write: if staff(); }
-    match /portfolio_events/{id} { allow read: if resource.data.visible == true || staff(); allow write: if staff(); }
-    match /team_members/{id} { allow read: if resource.data.visible == true || staff(); allow write: if staff(); }
-    match /partners/{id} { allow read: if resource.data.visible == true || staff(); allow write: if staff(); }
-    match /sponsors/{id} { allow read: if resource.data.visible == true || staff(); allow write: if staff(); }
+    match /portfolio_events/{id} { allow read: if true; allow write: if staff(); }
+    match /team_members/{id} { allow read: if true; allow write: if staff(); }
+    match /partners/{id} { allow read: if true; allow write: if staff(); }
+    match /sponsors/{id} { allow read: if true; allow write: if staff(); }
     match /cancellation_requests/{id} {
       allow create: if signedIn() && request.resource.data.customerUid == request.auth.uid;
       allow read: if staff() || (signedIn() && resource.data.customerUid == request.auth.uid);
